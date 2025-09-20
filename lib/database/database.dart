@@ -10,7 +10,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
@@ -45,6 +45,7 @@ class AppDatabase extends _$AppDatabase {
     List<Education>? educations,
     String? occupation,
     String? residence,
+    List<MaritalStatus>? maritalStatuses,
   }) {
     final query = select(clients);
     
@@ -87,7 +88,11 @@ class AppDatabase extends _$AppDatabase {
     if (residence != null && residence.isNotEmpty) {
       query.where((tbl) => tbl.residence.contains(residence));
     }
-    
+
+    if (maritalStatuses != null && maritalStatuses.isNotEmpty) {
+      query.where((tbl) => tbl.maritalStatus.isIn(maritalStatuses.map((m) => m.index)));
+    }
+
     return query.get();
   }
 }

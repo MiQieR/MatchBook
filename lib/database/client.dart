@@ -9,7 +9,6 @@ enum Gender {
 }
 
 enum Education {
-  primary('小学'),
   juniorHigh('初中'),
   seniorHigh('高中'),
   vocational('中专'),
@@ -20,6 +19,16 @@ enum Education {
   postdoc('博士后');
 
   const Education(this.label);
+  final String label;
+}
+
+enum MaritalStatus {
+  single('未婚'),
+  divorced('离异'),
+  widowed('丧偶'),
+  other('其他');
+
+  const MaritalStatus(this.label);
   final String label;
 }
 
@@ -36,6 +45,10 @@ class Clients extends Table {
   TextColumn get occupation => text()();
   TextColumn get familyInfo => text()();
   TextColumn get annualIncome => text()();
+  TextColumn get car => text()();
+  TextColumn get house => text()();
+  IntColumn get maritalStatus => intEnum<MaritalStatus>()();
+  TextColumn get children => text()();
   TextColumn get selfEvaluation => text()();
   TextColumn get partnerRequirements => text()();
 

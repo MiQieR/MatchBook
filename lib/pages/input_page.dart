@@ -19,6 +19,7 @@ class _InputPageState extends State<InputPage> {
   
   Gender? _selectedGender;
   Education? _selectedEducation;
+  MaritalStatus? _selectedMaritalStatus;
   bool _isSaving = false;
 
   @override
@@ -31,7 +32,8 @@ class _InputPageState extends State<InputPage> {
     final fields = [
       'recommender', 'clientId', 'birthYear',
       'birthPlace', 'residence', 'height', 'weight', 'occupation',
-      'familyInfo', 'annualIncome', 'selfEvaluation', 'partnerRequirements'
+      'familyInfo', 'annualIncome', 'car', 'house', 'children',
+      'selfEvaluation', 'partnerRequirements'
     ];
     
     for (String field in fields) {
@@ -40,6 +42,7 @@ class _InputPageState extends State<InputPage> {
     }
     _hasError['gender'] = false;
     _hasError['education'] = false;
+    _hasError['maritalStatus'] = false;
   }
 
   @override
@@ -71,6 +74,11 @@ class _InputPageState extends State<InputPage> {
 
     if (_selectedEducation == null) {
       _hasError['education'] = true;
+      hasValidationErrors = true;
+    }
+
+    if (_selectedMaritalStatus == null) {
+      _hasError['maritalStatus'] = true;
       hasValidationErrors = true;
     }
 
@@ -150,6 +158,10 @@ class _InputPageState extends State<InputPage> {
         occupation: drift.Value(_controllers['occupation']!.text.trim()),
         familyInfo: drift.Value(_controllers['familyInfo']!.text.trim()),
         annualIncome: drift.Value(_controllers['annualIncome']!.text.trim()),
+        car: drift.Value(_controllers['car']!.text.trim()),
+        house: drift.Value(_controllers['house']!.text.trim()),
+        maritalStatus: drift.Value(_selectedMaritalStatus!),
+        children: drift.Value(_controllers['children']!.text.trim()),
         selfEvaluation: drift.Value(_controllers['selfEvaluation']!.text.trim()),
         partnerRequirements: drift.Value(_controllers['partnerRequirements']!.text.trim()),
       );
@@ -190,6 +202,7 @@ class _InputPageState extends State<InputPage> {
     setState(() {
       _selectedGender = null;
       _selectedEducation = null;
+      _selectedMaritalStatus = null;
       _hasError.updateAll((key, value) => false);
     });
   }
@@ -225,6 +238,15 @@ class _InputPageState extends State<InputPage> {
               _buildTextField('职业', 'occupation'),
               _buildTextField('父母职业及家人几口', 'familyInfo'),
               _buildTextField('年收入', 'annualIncome'),
+              Row(
+                children: [
+                  Expanded(child: _buildTextField('车', 'car')),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildTextField('房', 'house')),
+                ],
+              ),
+              _buildMaritalStatusDropdown(),
+              _buildTextField('有无小孩', 'children', hint: '男女，几个，跟谁'),
               _buildTextField('自我评价', 'selfEvaluation', maxLines: 3),
               _buildTextField('择偶要求', 'partnerRequirements', maxLines: 3),
               const SizedBox(height: 24),
@@ -407,6 +429,50 @@ class _InputPageState extends State<InputPage> {
           setState(() {
             _selectedEducation = value;
             _hasError['education'] = false;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildMaritalStatusDropdown() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: DropdownButtonFormField<MaritalStatus>(
+        decoration: InputDecoration(
+          labelText: '婚姻状态 *',
+          border: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: _hasError['maritalStatus']! ? Colors.red : Colors.grey,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: _hasError['maritalStatus']! ? Colors.red : Colors.grey.shade300,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: _hasError['maritalStatus']! ? Colors.red : Theme.of(context).primaryColor,
+            ),
+          ),
+          filled: _hasError['maritalStatus']!,
+          fillColor: _hasError['maritalStatus']! ? Colors.red.shade50 : null,
+          labelStyle: TextStyle(
+            color: _hasError['maritalStatus']! ? Colors.red : null,
+          ),
+        ),
+        value: _selectedMaritalStatus,
+        items: MaritalStatus.values.map((MaritalStatus status) {
+          return DropdownMenuItem<MaritalStatus>(
+            value: status,
+            child: Text(status.label),
+          );
+        }).toList(),
+        onChanged: (MaritalStatus? value) {
+          setState(() {
+            _selectedMaritalStatus = value;
+            _hasError['maritalStatus'] = false;
           });
         },
       ),

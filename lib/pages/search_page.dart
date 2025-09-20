@@ -22,7 +22,8 @@ class _SearchPageState extends State<SearchPage> {
   final _residenceController = TextEditingController();
 
   final Set<Gender> _selectedGenders = {};
-  final Set<Education> _selectedEducations = {};
+  Education? _selectedEducation;
+  final Set<MaritalStatus> _selectedMaritalStatuses = {};
   List<Client> _searchResults = [];
   bool _isSearching = false;
 
@@ -59,9 +60,10 @@ class _SearchPageState extends State<SearchPage> {
             ? int.tryParse(_minWeightController.text) : null,
         maxWeight: _maxWeightController.text.isNotEmpty 
             ? int.tryParse(_maxWeightController.text) : null,
-        educations: _selectedEducations.isNotEmpty ? _selectedEducations.toList() : null,
+        educations: _selectedEducation != null ? [_selectedEducation!] : null,
         occupation: _occupationController.text.isNotEmpty ? _occupationController.text : null,
         residence: _residenceController.text.isNotEmpty ? _residenceController.text : null,
+        maritalStatuses: _selectedMaritalStatuses.isNotEmpty ? _selectedMaritalStatuses.toList() : null,
       );
 
       setState(() {
@@ -89,7 +91,8 @@ class _SearchPageState extends State<SearchPage> {
       _occupationController.clear();
       _residenceController.clear();
       _selectedGenders.clear();
-      _selectedEducations.clear();
+      _selectedEducation = null;
+      _selectedMaritalStatuses.clear();
       _searchResults.clear();
     });
   }
@@ -117,9 +120,13 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   const Text('筛选条件', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
-                  _buildGenderFilter(),
-                  const SizedBox(height: 12),
-                  _buildEducationFilter(),
+                  Row(
+                    children: [
+                      Expanded(child: _buildGenderFilter()),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildEducationDropdown()),
+                    ],
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -129,10 +136,10 @@ class _SearchPageState extends State<SearchPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
+                  _buildRangeField('体重(斤)', _minWeightController, _maxWeightController),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: _buildRangeField('体重(斤)', _minWeightController, _maxWeightController)),
-                      const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
                           controller: _occupationController,
@@ -143,17 +150,21 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _residenceController,
+                          decoration: const InputDecoration(
+                            labelText: '居住地关键词',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: _residenceController,
-                    decoration: const InputDecoration(
-                      labelText: '居住地关键词',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                  ),
+                  _buildMaritalStatusFilter(),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -240,30 +251,65 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildEducationFilter() {
+  Widget _buildEducationDropdown() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('学历', style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
+        DropdownButtonFormField<Education>(
+          decoration: const InputDecoration(
+            hintText: '选择学历',
+            border: OutlineInputBorder(),
+            isDense: true,
+          ),
+          value: _selectedEducation,
+          items: [
+            const DropdownMenuItem<Education>(
+              value: null,
+              child: Text('不限'),
+            ),
+            ...Education.values.map((Education education) {
+              return DropdownMenuItem<Education>(
+                value: education,
+                child: Text(education.label),
+              );
+            }),
+          ],
+          onChanged: (Education? value) {
+            setState(() {
+              _selectedEducation = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMaritalStatusFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('婚姻状态', style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
         Wrap(
-          children: Education.values.map((education) {
+          children: MaritalStatus.values.map((status) {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Checkbox(
-                  value: _selectedEducations.contains(education),
+                  value: _selectedMaritalStatuses.contains(status),
                   onChanged: (bool? value) {
                     setState(() {
                       if (value == true) {
-                        _selectedEducations.add(education);
+                        _selectedMaritalStatuses.add(status);
                       } else {
-                        _selectedEducations.remove(education);
+                        _selectedMaritalStatuses.remove(status);
                       }
                     });
                   },
                 ),
-                Text(education.label),
+                Text(status.label),
                 const SizedBox(width: 8),
               ],
             );
@@ -367,6 +413,10 @@ class _SearchPageState extends State<SearchPage> {
             _buildInfoRow('职业', client.occupation),
             _buildInfoRow('家庭情况', client.familyInfo),
             _buildInfoRow('年收入', client.annualIncome),
+            _buildInfoRow('车', client.car),
+            _buildInfoRow('房', client.house),
+            _buildInfoRow('婚姻状态', client.maritalStatus.label),
+            _buildInfoRow('有无小孩', client.children),
             if (client.selfEvaluation.isNotEmpty) ...[
               const SizedBox(height: 8),
               const Text('自我评价:', style: TextStyle(fontWeight: FontWeight.w500)),
