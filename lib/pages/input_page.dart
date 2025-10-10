@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:drift/drift.dart' as drift;
 import '../database/database.dart';
 import '../database/client.dart';
+import '../utils/text_parser.dart';
+import '../utils/plain_text_formatter.dart';
+import '../utils/clipboard_helper.dart';
 
 class InputPage extends StatefulWidget {
   final AppDatabase database;
@@ -16,11 +20,14 @@ class _InputPageState extends State<InputPage> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, bool> _hasError = {};
-  
+  final Map<String, bool> _hasWarning = {}; // 新增：警告状态
+  final TextEditingController _rawTextController = TextEditingController();
+
   Gender? _selectedGender;
   Education? _selectedEducation;
   MaritalStatus? _selectedMaritalStatus;
   bool _isSaving = false;
+  String? _parseSuccessMessage;
 
   @override
   void initState() {
@@ -35,18 +42,23 @@ class _InputPageState extends State<InputPage> {
       'familyInfo', 'annualIncome', 'car', 'house', 'children',
       'selfEvaluation', 'partnerRequirements'
     ];
-    
+
     for (String field in fields) {
       _controllers[field] = TextEditingController();
       _hasError[field] = false;
+      _hasWarning[field] = false; // 初始化警告状态
     }
     _hasError['gender'] = false;
     _hasError['education'] = false;
     _hasError['maritalStatus'] = false;
+    _hasWarning['gender'] = false;
+    _hasWarning['education'] = false;
+    _hasWarning['maritalStatus'] = false;
   }
 
   @override
   void dispose() {
+    _rawTextController.dispose();
     for (var controller in _controllers.values) {
       controller.dispose();
     }
@@ -116,7 +128,7 @@ class _InputPageState extends State<InputPage> {
     final weightText = _controllers['weight']!.text.trim();
     if (weightText.isNotEmpty) {
       final weight = int.tryParse(weightText);
-      if (weight != null && (weight < 60 || weight > 500)) {
+      if (weight != null && (weight < 40 || weight > 500)) {
         _hasError['weight'] = true;
         hasValidationErrors = true;
       }
@@ -196,6 +208,7 @@ class _InputPageState extends State<InputPage> {
   }
 
   void _clearForm() {
+    _rawTextController.clear();
     for (var controller in _controllers.values) {
       controller.clear();
     }
@@ -203,8 +216,194 @@ class _InputPageState extends State<InputPage> {
       _selectedGender = null;
       _selectedEducation = null;
       _selectedMaritalStatus = null;
+      _parseSuccessMessage = null;
       _hasError.updateAll((key, value) => false);
+      _hasWarning.updateAll((key, value) => false); // 清除警告状态
     });
+  }
+
+  /// 一键识别文本
+  void _parseText() {
+    final text = _rawTextController.text.trim();
+    if (text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('请输入要识别的文本'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // 解析文本
+      final result = ClientTextParser.parse(text);
+
+      // 填充表单
+      _fillFormFromParseResult(result);
+
+      // 使用 WidgetsBinding 确保在下一帧更新状态
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        setState(() {
+          if (result.errors.isEmpty && result.warnings.isEmpty) {
+            _parseSuccessMessage = '识别成功✅，请核对信息';
+          } else if (result.errors.isNotEmpty) {
+            _parseSuccessMessage = '部分字段识别失败，请手动填写';
+          } else {
+            _parseSuccessMessage = '识别成功，请注意黄色高亮字段';
+          }
+        });
+
+        // 构建消息列表
+        final List<String> messages = [];
+
+        if (result.errors.isNotEmpty) {
+          messages.add('识别失败字段:');
+          messages.addAll(result.errors.values);
+        }
+
+        if (result.warnings.isNotEmpty) {
+          if (messages.isNotEmpty) messages.add(''); // 空行分隔
+          messages.add('需要注意字段:');
+          messages.addAll(result.warnings.values);
+        }
+
+        // 显示提示
+        if (messages.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(messages.join('\n')),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 6),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('识别成功✅,请核对信息'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('解析失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 从剪贴板安全粘贴（处理微信富文本崩溃问题）
+  Future<void> _pasteFromClipboard() async {
+    try {
+      final clipboardText = await ClipboardHelper.getSanitizedClipboardText();
+
+      if (clipboardText == null || clipboardText.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('剪贴板为空'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      // 将清理后的文本设置到输入框
+      setState(() {
+        _rawTextController.text = clipboardText;
+        _rawTextController.selection = TextSelection.collapsed(
+          offset: clipboardText.length,
+        );
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('已粘贴文本'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('粘贴失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 从解析结果填充表单
+  void _fillFormFromParseResult(ParseResult result) {
+    if (!mounted) return;
+
+    // 先清除所有错误和警告状态
+    _hasError.updateAll((key, value) => false);
+    _hasWarning.updateAll((key, value) => false);
+
+    // 设置错误状态（识别失败的字段）
+    for (var errorKey in result.errors.keys) {
+      if (_hasError.containsKey(errorKey)) {
+        _hasError[errorKey] = true;
+      }
+    }
+
+    // 设置警告状态（需要注意的字段）
+    for (var warningKey in result.warnings.keys) {
+      if (_hasWarning.containsKey(warningKey)) {
+        _hasWarning[warningKey] = true;
+      }
+    }
+
+    // 填充文本字段
+    for (var entry in result.fields.entries) {
+      final fieldName = entry.key;
+      final value = entry.value;
+
+      if (value == null || value.isEmpty) continue;
+
+      // 处理枚举类型字段
+      if (fieldName == 'gender') {
+        _selectedGender = Gender.values.firstWhere(
+          (g) => g.label == value,
+          orElse: () => Gender.male,
+        );
+        _hasError['gender'] = false;
+      } else if (fieldName == 'education') {
+        _selectedEducation = Education.values.firstWhere(
+          (e) => e.label == value,
+          orElse: () => Education.bachelor,
+        );
+        _hasError['education'] = false;
+      } else if (fieldName == 'maritalStatus') {
+        _selectedMaritalStatus = MaritalStatus.values.firstWhere(
+          (m) => m.label == value,
+          orElse: () => MaritalStatus.single,
+        );
+        _hasError['maritalStatus'] = false;
+      } else if (_controllers.containsKey(fieldName)) {
+        // 填充文本字段
+        _controllers[fieldName]!.text = value;
+        _hasError[fieldName] = false;
+      }
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -221,6 +420,98 @@ class _InputPageState extends State<InputPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // 一键识别区域
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.auto_awesome, color: Colors.blue.shade700, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          '一键识别',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _rawTextController,
+                      maxLines: 8,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      enableInteractiveSelection: true,
+                      contextMenuBuilder: (context, editableTextState) {
+                        // 禁用系统粘贴菜单，改用我们的安全粘贴方法
+                        return const SizedBox.shrink();
+                      },
+                      inputFormatters: [
+                        PlainTextFormatter(), // 额外防护层
+                      ],
+                      decoration: InputDecoration(
+                        hintText: '使用下方「粘贴」按钮粘贴客户信息...\n\n例如：\n推荐：张三\n编号：12345\n性别：女\n...',
+                        border: const OutlineInputBorder(),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.all(12),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // 安全粘贴按钮
+                        ElevatedButton.icon(
+                          onPressed: _pasteFromClipboard,
+                          icon: const Icon(Icons.content_paste),
+                          label: const Text('粘贴'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green.shade600,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        if (_parseSuccessMessage != null)
+                          Expanded(
+                            child: Text(
+                              _parseSuccessMessage!,
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          onPressed: _parseText,
+                          icon: const Icon(Icons.smart_button),
+                          label: const Text('一键识别'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade600,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
               _buildTextField('推荐人', 'recommender'),
               _buildTextField('客户编号', 'clientId', isRequired: true),
               _buildGenderDropdown(),
@@ -307,6 +598,29 @@ class _InputPageState extends State<InputPage> {
 
   Widget _buildTextField(String label, String fieldName,
       {bool isRequired = false, bool isNumber = false, int maxLines = 1, String? hint}) {
+    final hasError = _hasError[fieldName]!;
+    final hasWarning = _hasWarning[fieldName]!;
+
+    // 确定边框颜色和填充颜色
+    Color getBorderColor(bool isFocused) {
+      if (hasError) return Colors.red;
+      if (hasWarning) return Colors.orange;
+      if (isFocused) return Theme.of(context).primaryColor;
+      return Colors.grey.shade300;
+    }
+
+    Color? getFillColor() {
+      if (hasError) return Colors.red.shade50;
+      if (hasWarning) return Colors.orange.shade50;
+      return null;
+    }
+
+    Color? getLabelColor() {
+      if (hasError) return Colors.red;
+      if (hasWarning) return Colors.orange;
+      return null;
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: TextFormField(
@@ -318,17 +632,18 @@ class _InputPageState extends State<InputPage> {
           hintText: hint,
           border: OutlineInputBorder(
             borderSide: BorderSide(
-              color: _hasError[fieldName]! ? Colors.red : Colors.grey,
+              color: hasError ? Colors.red : (hasWarning ? Colors.orange : Colors.grey),
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(
-              color: _hasError[fieldName]! ? Colors.red : Colors.grey.shade300,
+              color: getBorderColor(false),
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(
-              color: _hasError[fieldName]! ? Colors.red : Theme.of(context).primaryColor,
+              color: getBorderColor(true),
+              width: 2,
             ),
           ),
           errorBorder: const OutlineInputBorder(
@@ -337,10 +652,10 @@ class _InputPageState extends State<InputPage> {
           focusedErrorBorder: const OutlineInputBorder(
             borderSide: BorderSide(color: Colors.red, width: 2),
           ),
-          filled: _hasError[fieldName]!,
-          fillColor: _hasError[fieldName]! ? Colors.red.shade50 : null,
+          filled: hasError || hasWarning,
+          fillColor: getFillColor(),
           labelStyle: TextStyle(
-            color: _hasError[fieldName]! ? Colors.red : null,
+            color: getLabelColor(),
           ),
         ),
       ),
