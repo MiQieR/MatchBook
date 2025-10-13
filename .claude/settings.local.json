@@ -10,7 +10,11 @@
       "Bash(open:*)",
       "Bash(flutter run:*)",
       "Bash(tee:*)",
-      "Bash(nc:*)"
+      "Bash(nc:*)",
+      "Bash(findstr:*)",
+      "Bash(del nul)",
+      "Bash(rm:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

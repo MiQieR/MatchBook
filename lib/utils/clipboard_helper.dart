@@ -1,11 +1,11 @@
 import 'package:flutter/services.dart';
 
-/// Helper class to safely get clipboard text via native iOS sanitization
-/// This prevents crashes from WeChat's rich text format
+/// Helper class to safely get clipboard text via native platform sanitization
+/// This prevents crashes from WeChat's rich text format on both iOS and Android
 class ClipboardHelper {
   static const MethodChannel _channel = MethodChannel('com.matchmaker.clipboard');
 
-  /// Get sanitized clipboard text from native iOS layer
+  /// Get sanitized clipboard text from native platform layer
   /// Returns null if clipboard is empty or an error occurs
   static Future<String?> getSanitizedClipboardText() async {
     try {

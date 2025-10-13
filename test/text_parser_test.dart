@@ -40,8 +40,10 @@ void main() {
       // 验证错误识别的字段
       expect(result.errors.containsKey('birthYear'), true,
           reason: '出生年份应该被标记为错误（含中文）');
-      expect(result.errors.containsKey('height'), true,
-          reason: '身高应该被标记为错误（使用了小数点）');
+      expect(result.fields['height'], '158',
+          reason: '身高应该自动从米转换为cm');
+      expect(result.warnings['weight'], '体重较轻（45 斤），请检查单位是否为斤',
+          reason: '体重45斤应该有警告');
     });
 
     test('应该正确解析出生年份 - 四位数', () {
@@ -72,18 +74,58 @@ void main() {
       expect(result.errors.containsKey('height'), false);
     });
 
-    test('应该拒绝身高带冒号', () {
+    test('应该拒绝身高带冒号（不匹配）', () {
       const testText = '身高：1:58';
       final result = ClientTextParser.parse(testText);
+      // 带冒号的值会被正则阻止匹配，因此字段不会被填充
       expect(result.fields.containsKey('height'), false);
-      expect(result.errors.containsKey('height'), true);
     });
 
-    test('应该拒绝身高带小数点', () {
+    test('应该正确解析身高 - 米单位自动转换', () {
       const testText = '身高：1.62';
       final result = ClientTextParser.parse(testText);
-      expect(result.fields.containsKey('height'), false);
-      expect(result.errors.containsKey('height'), true);
+      expect(result.fields['height'], '162');
+      expect(result.errors.containsKey('height'), false);
+    });
+
+    test('应该正确处理空字段不会错位 - 例1', () {
+      const testText = '''
+年收入：正常
+车：
+房：17年盖的房
+婚姻状态：未婚
+''';
+      final result = ClientTextParser.parse(testText);
+
+      // 验证车字段为空（不应该匹配到"房：17年盖的房"）
+      expect(result.fields.containsKey('car'), false);
+
+      // 验证房字段正确识别
+      expect(result.fields['house'], '17年盖的房');
+
+      // 验证婚姻状态正确识别
+      expect(result.fields['maritalStatus'], '未婚');
+    });
+
+    test('应该正确处理空字段不会错位 - 例2', () {
+      const testText = '''
+年收入：正常
+车：
+房：
+婚姻状态：未婚
+有无小孩：无
+''';
+      final result = ClientTextParser.parse(testText);
+
+      // 验证车和房字段为空（不应该错位）
+      expect(result.fields.containsKey('car'), false);
+      expect(result.fields.containsKey('house'), false);
+
+      // 验证婚姻状态正确识别（不应该被放到house字段）
+      expect(result.fields['maritalStatus'], '未婚');
+
+      // 验证有无小孩正确识别
+      expect(result.fields['children'], '无');
     });
 
     test('应该正确解析体重', () {
