@@ -39,6 +39,8 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.39
   path_provider: ^2.1.5
   path: ^1.9.1
+  provider: ^6.1.2
+  file_picker: ^8.1.6
 
 dev_dependencies:
   flutter_test:

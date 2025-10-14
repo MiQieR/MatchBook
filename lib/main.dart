@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'database/database.dart';
 import 'pages/input_page.dart';
 import 'pages/search_page.dart';
 import 'pages/settings_page.dart';
+import 'utils/theme_provider.dart' as theme_utils;
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => theme_utils.ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -13,15 +20,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '红娘客户查询系统',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(),
+    return Consumer<theme_utils.ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: '红娘客户查询系统',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepPurple,
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+          ),
+          themeMode: _convertThemeMode(themeProvider.themeMode),
+          home: const MyHomePage(),
+        );
+      },
     );
+  }
+
+  ThemeMode _convertThemeMode(theme_utils.ThemeMode mode) {
+    switch (mode) {
+      case theme_utils.ThemeMode.light:
+        return ThemeMode.light;
+      case theme_utils.ThemeMode.dark:
+        return ThemeMode.dark;
+      case theme_utils.ThemeMode.system:
+        return ThemeMode.system;
+    }
   }
 }
 
@@ -44,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _pages = [
       InputPage(database: database),
       SearchPage(database: database),
-      const SettingsPage(),
+      SettingsPage(database: database),
     ];
   }
 
