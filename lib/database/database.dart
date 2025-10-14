@@ -35,6 +35,7 @@ class AppDatabase extends _$AppDatabase {
       (select(clients)..where((tbl) => tbl.clientId.equals(clientId))).getSingleOrNull();
 
   Future<List<Client>> searchClients({
+    String? keyword,
     List<Gender>? genders,
     int? minBirthYear,
     int? maxBirthYear,
@@ -48,43 +49,61 @@ class AppDatabase extends _$AppDatabase {
     List<MaritalStatus>? maritalStatuses,
   }) {
     final query = select(clients);
-    
+
+    // 统一搜索关键词
+    if (keyword != null && keyword.isNotEmpty) {
+      query.where((tbl) =>
+        tbl.clientId.contains(keyword) |
+        tbl.recommender.contains(keyword) |
+        tbl.birthPlace.contains(keyword) |
+        tbl.residence.contains(keyword) |
+        tbl.occupation.contains(keyword) |
+        tbl.familyInfo.contains(keyword) |
+        tbl.annualIncome.contains(keyword) |
+        tbl.car.contains(keyword) |
+        tbl.house.contains(keyword) |
+        tbl.children.contains(keyword) |
+        tbl.selfEvaluation.contains(keyword) |
+        tbl.partnerRequirements.contains(keyword)
+      );
+    }
+
     if (genders != null && genders.isNotEmpty) {
       query.where((tbl) => tbl.gender.isIn(genders.map((g) => g.index)));
     }
-    
+
     if (minBirthYear != null) {
       query.where((tbl) => tbl.birthYear.isBiggerOrEqualValue(minBirthYear));
     }
-    
+
     if (maxBirthYear != null) {
       query.where((tbl) => tbl.birthYear.isSmallerOrEqualValue(maxBirthYear));
     }
-    
+
     if (minHeight != null) {
       query.where((tbl) => tbl.height.isBiggerOrEqualValue(minHeight));
     }
-    
+
     if (maxHeight != null) {
       query.where((tbl) => tbl.height.isSmallerOrEqualValue(maxHeight));
     }
-    
+
     if (minWeight != null) {
       query.where((tbl) => tbl.weight.isBiggerOrEqualValue(minWeight));
     }
-    
+
     if (maxWeight != null) {
       query.where((tbl) => tbl.weight.isSmallerOrEqualValue(maxWeight));
     }
-    
+
     if (educations != null && educations.isNotEmpty) {
       query.where((tbl) => tbl.education.isIn(educations.map((e) => e.index)));
     }
-    
+
     if (occupation != null && occupation.isNotEmpty) {
       query.where((tbl) => tbl.occupation.contains(occupation));
     }
-    
+
     if (residence != null && residence.isNotEmpty) {
       query.where((tbl) => tbl.residence.contains(residence));
     }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../database/database.dart';
 import '../database/client.dart';
+import 'client_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
   final AppDatabase database;
@@ -12,6 +13,7 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  final _keywordController = TextEditingController();
   final _minBirthYearController = TextEditingController();
   final _maxBirthYearController = TextEditingController();
   final _minHeightController = TextEditingController();
@@ -26,9 +28,11 @@ class _SearchPageState extends State<SearchPage> {
   final Set<MaritalStatus> _selectedMaritalStatuses = {};
   List<Client> _searchResults = [];
   bool _isSearching = false;
+  bool _showAdvancedFilters = false;
 
   @override
   void dispose() {
+    _keywordController.dispose();
     _minBirthYearController.dispose();
     _maxBirthYearController.dispose();
     _minHeightController.dispose();
@@ -47,18 +51,19 @@ class _SearchPageState extends State<SearchPage> {
 
     try {
       final results = await widget.database.searchClients(
+        keyword: _keywordController.text.isNotEmpty ? _keywordController.text : null,
         genders: _selectedGenders.isNotEmpty ? _selectedGenders.toList() : null,
-        minBirthYear: _minBirthYearController.text.isNotEmpty 
+        minBirthYear: _minBirthYearController.text.isNotEmpty
             ? int.tryParse(_minBirthYearController.text) : null,
-        maxBirthYear: _maxBirthYearController.text.isNotEmpty 
+        maxBirthYear: _maxBirthYearController.text.isNotEmpty
             ? int.tryParse(_maxBirthYearController.text) : null,
-        minHeight: _minHeightController.text.isNotEmpty 
+        minHeight: _minHeightController.text.isNotEmpty
             ? int.tryParse(_minHeightController.text) : null,
-        maxHeight: _maxHeightController.text.isNotEmpty 
+        maxHeight: _maxHeightController.text.isNotEmpty
             ? int.tryParse(_maxHeightController.text) : null,
-        minWeight: _minWeightController.text.isNotEmpty 
+        minWeight: _minWeightController.text.isNotEmpty
             ? int.tryParse(_minWeightController.text) : null,
-        maxWeight: _maxWeightController.text.isNotEmpty 
+        maxWeight: _maxWeightController.text.isNotEmpty
             ? int.tryParse(_maxWeightController.text) : null,
         educations: _selectedEducation != null ? [_selectedEducation!] : null,
         occupation: _occupationController.text.isNotEmpty ? _occupationController.text : null,
@@ -74,14 +79,17 @@ class _SearchPageState extends State<SearchPage> {
       setState(() {
         _isSearching = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('搜索失败: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('搜索失败: $e')),
+        );
+      }
     }
   }
 
   void _resetFilters() {
     setState(() {
+      _keywordController.clear();
       _minBirthYearController.clear();
       _maxBirthYearController.clear();
       _minHeightController.clear();
@@ -112,93 +120,122 @@ class _SearchPageState extends State<SearchPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // 统一搜索框
             Container(
               padding: const EdgeInsets.all(16.0),
-              color: Colors.grey[50],
+              color: Colors.blue[50],
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('筛选条件', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(child: _buildGenderFilter()),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildEducationDropdown()),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(child: _buildRangeField('出生年份', _minBirthYearController, _maxBirthYearController)),
-                      const SizedBox(width: 8),
-                      Expanded(child: _buildRangeField('身高(cm)', _minHeightController, _maxHeightController)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _buildRangeField('体重(斤)', _minWeightController, _maxWeightController),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _occupationController,
-                          decoration: const InputDecoration(
-                            labelText: '职业关键词',
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                        ),
+                  TextField(
+                    controller: _keywordController,
+                    decoration: InputDecoration(
+                      hintText: '搜索客户编号、推荐人、自我评价、择偶要求等...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          controller: _residenceController,
-                          decoration: const InputDecoration(
-                            labelText: '居住地关键词',
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                        ),
-                      ),
-                    ],
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    onSubmitted: (value) => _searchClients(),
                   ),
                   const SizedBox(height: 12),
-                  _buildMaritalStatusFilter(),
-                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
                           onPressed: _isSearching ? null : _searchClients,
-                          child: _isSearching
-                              ? const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text('查询中...'),
-                                  ],
+                          icon: _isSearching
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                 )
-                              : const Text('查询'),
+                              : const Icon(Icons.search),
+                          label: Text(_isSearching ? '查询中...' : '查询'),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: OutlinedButton(
+                        child: OutlinedButton.icon(
                           onPressed: _resetFilters,
-                          child: const Text('重置条件'),
+                          icon: const Icon(Icons.clear_all),
+                          label: const Text('重置'),
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _showAdvancedFilters = !_showAdvancedFilters;
+                          });
+                        },
+                        icon: Icon(_showAdvancedFilters ? Icons.expand_less : Icons.expand_more),
+                        tooltip: '高级筛选',
                       ),
                     ],
                   ),
                 ],
               ),
             ),
+            // 高级筛选区域
+            if (_showAdvancedFilters)
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                color: Colors.grey[50],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('高级筛选', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(child: _buildGenderFilter()),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildEducationDropdown()),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: _buildRangeField('出生年份', _minBirthYearController, _maxBirthYearController)),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildRangeField('身高(cm)', _minHeightController, _maxHeightController)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildRangeField('体重(斤)', _minWeightController, _maxWeightController),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _occupationController,
+                            decoration: const InputDecoration(
+                              labelText: '职业关键词',
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _residenceController,
+                            decoration: const InputDecoration(
+                              labelText: '居住地关键词',
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMaritalStatusFilter(),
+                  ],
+                ),
+              ),
             if (_searchResults.isNotEmpty)
               ...(_searchResults.map((client) => Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
@@ -263,7 +300,6 @@ class _SearchPageState extends State<SearchPage> {
             border: OutlineInputBorder(),
             isDense: true,
           ),
-          value: _selectedEducation,
           items: [
             const DropdownMenuItem<Education>(
               value: null,
@@ -361,75 +397,88 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _buildClientCard(Client client) {
     final age = _calculateAge(client.birthYear);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '客户编号: ${client.clientId}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: client.gender == Gender.male ? Colors.blue[100] : Colors.pink[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    client.gender.label,
-                    style: TextStyle(
-                      color: client.gender == Gender.male ? Colors.blue[800] : Colors.pink[800],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
+      child: InkWell(
+        onTap: () {
+          // 导航到客户详情页面
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ClientDetailPage(
+                database: widget.database,
+                clientId: client.clientId,
+              ),
             ),
-            const SizedBox(height: 12),
-            _buildInfoRow('推荐人', client.recommender),
-            _buildInfoRow('年龄', '$age岁 (${client.birthYear}年出生)'),
-            _buildInfoRow('出生地', client.birthPlace),
-            _buildInfoRow('现居地', client.residence),
-            _buildInfoRow('身高体重', '${client.height}cm / ${client.weight}斤'),
-            _buildInfoRow('学历', client.education.label),
-            _buildInfoRow('职业', client.occupation),
-            _buildInfoRow('家庭情况', client.familyInfo),
-            _buildInfoRow('年收入', client.annualIncome),
-            _buildInfoRow('车', client.car),
-            _buildInfoRow('房', client.house),
-            _buildInfoRow('婚姻状态', client.maritalStatus.label),
-            _buildInfoRow('有无小孩', client.children),
-            if (client.selfEvaluation.isNotEmpty) ...[
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '客户编号: ${client.clientId}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: client.gender == Gender.male ? Colors.blue[100] : Colors.pink[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      client.gender.label,
+                      style: TextStyle(
+                        color: client.gender == Gender.male ? Colors.blue[800] : Colors.pink[800],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildInfoRow('推荐人', client.recommender),
+              _buildInfoRow('年龄', '$age岁 (${client.birthYear}年出生)'),
+              _buildInfoRow('出生地', client.birthPlace),
+              _buildInfoRow('现居地', client.residence),
+              _buildInfoRow('身高体重', '${client.height}cm / ${client.weight}斤'),
+              _buildInfoRow('学历', client.education.label),
+              _buildInfoRow('职业', client.occupation),
+              _buildInfoRow('家庭情况', client.familyInfo),
+              _buildInfoRow('年收入', client.annualIncome),
+              _buildInfoRow('车', client.car),
+              _buildInfoRow('房', client.house),
+              _buildInfoRow('婚姻状态', client.maritalStatus.label),
+              _buildInfoRow('有无小孩', client.children),
               const SizedBox(height: 8),
-              const Text('自我评价:', style: TextStyle(fontWeight: FontWeight.w500)),
-              const SizedBox(height: 4),
-              Text(client.selfEvaluation, style: TextStyle(color: Colors.grey[700])),
+              const Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '点击查看详情 >',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             ],
-            if (client.partnerRequirements.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              const Text('择偶要求:', style: TextStyle(fontWeight: FontWeight.w500)),
-              const SizedBox(height: 4),
-              Text(client.partnerRequirements, style: TextStyle(color: Colors.grey[700])),
-            ],
-          ],
+          ),
         ),
       ),
     );
