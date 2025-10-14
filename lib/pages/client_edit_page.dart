@@ -91,7 +91,12 @@ class _ClientEditPageState extends State<ClientEditPage> {
 
     bool hasValidationErrors = false;
 
-    // 验证必填字段
+    // 验证必填字段：推荐人、客户编号、性别
+    if (_controllers['recommender']!.text.trim().isEmpty) {
+      _hasError['recommender'] = true;
+      hasValidationErrors = true;
+    }
+
     if (_controllers['clientId']!.text.trim().isEmpty) {
       _hasError['clientId'] = true;
       hasValidationErrors = true;
@@ -99,16 +104,6 @@ class _ClientEditPageState extends State<ClientEditPage> {
 
     if (_selectedGender == null) {
       _hasError['gender'] = true;
-      hasValidationErrors = true;
-    }
-
-    if (_selectedEducation == null) {
-      _hasError['education'] = true;
-      hasValidationErrors = true;
-    }
-
-    if (_selectedMaritalStatus == null) {
-      _hasError['maritalStatus'] = true;
       hasValidationErrors = true;
     }
 
@@ -184,13 +179,13 @@ class _ClientEditPageState extends State<ClientEditPage> {
             ? int.parse(_controllers['height']!.text.trim()) : 0,
         weight: _controllers['weight']!.text.trim().isNotEmpty
             ? int.parse(_controllers['weight']!.text.trim()) : 0,
-        education: _selectedEducation!,
+        education: _selectedEducation ?? Education.bachelor,
         occupation: _controllers['occupation']!.text.trim(),
         familyInfo: _controllers['familyInfo']!.text.trim(),
         annualIncome: _controllers['annualIncome']!.text.trim(),
         car: _controllers['car']!.text.trim(),
         house: _controllers['house']!.text.trim(),
-        maritalStatus: _selectedMaritalStatus!,
+        maritalStatus: _selectedMaritalStatus ?? MaritalStatus.single,
         children: _controllers['children']!.text.trim(),
         selfEvaluation: _controllers['selfEvaluation']!.text.trim(),
         partnerRequirements: _controllers['partnerRequirements']!.text.trim(),
@@ -239,7 +234,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildTextField('推荐人', 'recommender'),
+              _buildTextField('推荐人', 'recommender', isRequired: true),
               _buildTextField('客户编号', 'clientId', isRequired: true, enabled: false),
               _buildGenderDropdown(),
               _buildTextField('出生年份', 'birthYear', isNumber: true, hint: '如: 1990'),
@@ -434,7 +429,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: DropdownButtonFormField<Education>(
         decoration: InputDecoration(
-          labelText: '学历 *',
+          labelText: '学历',
           border: OutlineInputBorder(
             borderSide: BorderSide(
               color: _hasError['education']! ? Colors.red : Colors.grey,
@@ -478,7 +473,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: DropdownButtonFormField<MaritalStatus>(
         decoration: InputDecoration(
-          labelText: '婚姻状态 *',
+          labelText: '婚姻状态',
           border: OutlineInputBorder(
             borderSide: BorderSide(
               color: _hasError['maritalStatus']! ? Colors.red : Colors.grey,

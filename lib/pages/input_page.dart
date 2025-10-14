@@ -73,7 +73,12 @@ class _InputPageState extends State<InputPage> {
 
     bool hasValidationErrors = false;
 
-    // 验证必填字段
+    // 验证必填字段：推荐人、客户编号、性别
+    if (_controllers['recommender']!.text.trim().isEmpty) {
+      _hasError['recommender'] = true;
+      hasValidationErrors = true;
+    }
+
     if (_controllers['clientId']!.text.trim().isEmpty) {
       _hasError['clientId'] = true;
       hasValidationErrors = true;
@@ -81,16 +86,6 @@ class _InputPageState extends State<InputPage> {
 
     if (_selectedGender == null) {
       _hasError['gender'] = true;
-      hasValidationErrors = true;
-    }
-
-    if (_selectedEducation == null) {
-      _hasError['education'] = true;
-      hasValidationErrors = true;
-    }
-
-    if (_selectedMaritalStatus == null) {
-      _hasError['maritalStatus'] = true;
       hasValidationErrors = true;
     }
 
@@ -158,28 +153,28 @@ class _InputPageState extends State<InputPage> {
         clientId: drift.Value(_controllers['clientId']!.text.trim()),
         recommender: drift.Value(_controllers['recommender']!.text.trim()),
         gender: drift.Value(_selectedGender!),
-        birthYear: drift.Value(_controllers['birthYear']!.text.trim().isNotEmpty 
+        birthYear: drift.Value(_controllers['birthYear']!.text.trim().isNotEmpty
             ? int.parse(_controllers['birthYear']!.text.trim()) : 0),
         birthPlace: drift.Value(_controllers['birthPlace']!.text.trim()),
         residence: drift.Value(_controllers['residence']!.text.trim()),
-        height: drift.Value(_controllers['height']!.text.trim().isNotEmpty 
+        height: drift.Value(_controllers['height']!.text.trim().isNotEmpty
             ? int.parse(_controllers['height']!.text.trim()) : 0),
-        weight: drift.Value(_controllers['weight']!.text.trim().isNotEmpty 
+        weight: drift.Value(_controllers['weight']!.text.trim().isNotEmpty
             ? int.parse(_controllers['weight']!.text.trim()) : 0),
-        education: drift.Value(_selectedEducation!),
+        education: drift.Value(_selectedEducation ?? Education.bachelor),
         occupation: drift.Value(_controllers['occupation']!.text.trim()),
         familyInfo: drift.Value(_controllers['familyInfo']!.text.trim()),
         annualIncome: drift.Value(_controllers['annualIncome']!.text.trim()),
         car: drift.Value(_controllers['car']!.text.trim()),
         house: drift.Value(_controllers['house']!.text.trim()),
-        maritalStatus: drift.Value(_selectedMaritalStatus!),
+        maritalStatus: drift.Value(_selectedMaritalStatus ?? MaritalStatus.single),
         children: drift.Value(_controllers['children']!.text.trim()),
         selfEvaluation: drift.Value(_controllers['selfEvaluation']!.text.trim()),
         partnerRequirements: drift.Value(_controllers['partnerRequirements']!.text.trim()),
       );
 
       await widget.database.insertClient(client);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -512,7 +507,7 @@ class _InputPageState extends State<InputPage> {
               const SizedBox(height: 24),
               const Divider(),
               const SizedBox(height: 16),
-              _buildTextField('推荐人', 'recommender'),
+              _buildTextField('推荐人', 'recommender', isRequired: true),
               _buildTextField('客户编号', 'clientId', isRequired: true),
               _buildGenderDropdown(),
               _buildTextField('出生年份', 'birthYear', isNumber: true, hint: '如: 1990'),
@@ -711,7 +706,7 @@ class _InputPageState extends State<InputPage> {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: DropdownButtonFormField<Education>(
         decoration: InputDecoration(
-          labelText: '学历 *',
+          labelText: '学历',
           border: OutlineInputBorder(
             borderSide: BorderSide(
               color: _hasError['education']! ? Colors.red : Colors.grey,
@@ -755,7 +750,7 @@ class _InputPageState extends State<InputPage> {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: DropdownButtonFormField<MaritalStatus>(
         decoration: InputDecoration(
-          labelText: '婚姻状态 *',
+          labelText: '婚姻状态',
           border: OutlineInputBorder(
             borderSide: BorderSide(
               color: _hasError['maritalStatus']! ? Colors.red : Colors.grey,
