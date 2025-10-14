@@ -449,7 +449,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           Expanded(
-            child: Text(value.isEmpty ? '未填写' : value),
+            child: Text(value.isEmpty ? '--' : value),
           ),
         ],
       ),
