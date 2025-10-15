@@ -412,179 +412,245 @@ class _InputPageState extends State<InputPage> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 一键识别区域
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.auto_awesome, color: Colors.blue.shade700, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          '一键识别',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                      ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // 判断是否为横屏模式
+              final isLandscape = constraints.maxWidth >= 600;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 一键识别区域 - 始终独占
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade200),
                     ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _rawTextController,
-                      maxLines: 8,
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
-                      enableInteractiveSelection: true,
-                      contextMenuBuilder: (context, editableTextState) {
-                        // 禁用系统粘贴菜单，改用我们的安全粘贴方法
-                        return const SizedBox.shrink();
-                      },
-                      inputFormatters: [
-                        PlainTextFormatter(), // 额外防护层
-                      ],
-                      decoration: InputDecoration(
-                        hintText: '使用下方「粘贴」按钮粘贴客户信息...\n\n例如：\n推荐：张三\n编号：12345\n性别：女\n...',
-                        border: const OutlineInputBorder(),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.all(12),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // 安全粘贴按钮
-                        ElevatedButton.icon(
-                          onPressed: _pasteFromClipboard,
-                          icon: const Icon(Icons.content_paste),
-                          label: const Text('粘贴'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade600,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        if (_parseSuccessMessage != null)
-                          Expanded(
-                            child: Text(
-                              _parseSuccessMessage!,
-                              style: const TextStyle(
-                                color: Colors.green,
+                        Row(
+                          children: [
+                            Icon(Icons.auto_awesome, color: Colors.blue.shade700, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              '一键识别',
+                              style: TextStyle(
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade700,
                               ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _rawTextController,
+                          maxLines: 8,
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
+                          enableInteractiveSelection: true,
+                          contextMenuBuilder: (context, editableTextState) {
+                            // 禁用系统粘贴菜单，改用我们的安全粘贴方法
+                            return const SizedBox.shrink();
+                          },
+                          inputFormatters: [
+                            PlainTextFormatter(), // 额外防护层
+                          ],
+                          decoration: InputDecoration(
+                            hintText: '使用下方「粘贴」按钮粘贴客户信息...\n\n例如：\n推荐：张三\n编号：12345\n性别：女\n...',
+                            border: const OutlineInputBorder(),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.all(12),
                           ),
-                        const SizedBox(width: 12),
-                        ElevatedButton.icon(
-                          onPressed: _parseText,
-                          icon: const Icon(Icons.smart_button),
-                          label: const Text('一键识别'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade600,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // 安全粘贴按钮
+                            ElevatedButton.icon(
+                              onPressed: _pasteFromClipboard,
+                              icon: const Icon(Icons.content_paste),
+                              label: const Text('粘贴'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green.shade600,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            if (_parseSuccessMessage != null)
+                              Expanded(
+                                child: Text(
+                                  _parseSuccessMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(width: 12),
+                            ElevatedButton.icon(
+                              onPressed: _parseText,
+                              icon: const Icon(Icons.smart_button),
+                              label: const Text('一键识别'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue.shade600,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  // 表单字段 - 根据横竖屏调整
+                  if (isLandscape) ...[
+                    // 横屏布局：多个输入框在同一行
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('推荐人', 'recommender', isRequired: true)),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('客户编号', 'clientId', isRequired: true)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(child: _buildGenderDropdown()),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('出生年份', 'birthYear', isNumber: true, hint: '如: 1990')),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('出生地', 'birthPlace')),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('现居地', 'residence')),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('身高', 'height', isNumber: true, hint: '单位: cm')),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('体重', 'weight', isNumber: true, hint: '单位: 斤')),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(child: _buildEducationDropdown()),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('职业', 'occupation')),
+                      ],
+                    ),
+                    _buildTextField('父母职业及家人几口', 'familyInfo'),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('年收入', 'annualIncome')),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildMaritalStatusDropdown()),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('车', 'car')),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('房', 'house')),
+                      ],
+                    ),
+                    _buildTextField('有无小孩', 'children', hint: '男女，几个，跟谁'),
+                    _buildTextField('自我评价', 'selfEvaluation', maxLines: 3),
+                    _buildTextField('择偶要求', 'partnerRequirements', maxLines: 3),
+                  ] else ...[
+                    // 竖屏布局：保持原有的垂直布局
+                    _buildTextField('推荐人', 'recommender', isRequired: true),
+                    _buildTextField('客户编号', 'clientId', isRequired: true),
+                    _buildGenderDropdown(),
+                    _buildTextField('出生年份', 'birthYear', isNumber: true, hint: '如: 1990'),
+                    _buildTextField('出生地', 'birthPlace'),
+                    _buildTextField('现居地', 'residence'),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('身高', 'height', isNumber: true, hint: '单位: cm')),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('体重', 'weight', isNumber: true, hint: '单位: 斤')),
+                      ],
+                    ),
+                    _buildEducationDropdown(),
+                    _buildTextField('职业', 'occupation'),
+                    _buildTextField('父母职业及家人几口', 'familyInfo'),
+                    _buildTextField('年收入', 'annualIncome'),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('车', 'car')),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('房', 'house')),
+                      ],
+                    ),
+                    _buildMaritalStatusDropdown(),
+                    _buildTextField('有无小孩', 'children', hint: '男女，几个，跟谁'),
+                    _buildTextField('自我评价', 'selfEvaluation', maxLines: 3),
+                    _buildTextField('择偶要求', 'partnerRequirements', maxLines: 3),
                   ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 16),
-              _buildTextField('推荐人', 'recommender', isRequired: true),
-              _buildTextField('客户编号', 'clientId', isRequired: true),
-              _buildGenderDropdown(),
-              _buildTextField('出生年份', 'birthYear', isNumber: true, hint: '如: 1990'),
-              _buildTextField('出生地', 'birthPlace'),
-              _buildTextField('现居地', 'residence'),
-              Row(
-                children: [
-                  Expanded(child: _buildTextField('身高', 'height', isNumber: true, hint: '单位: cm')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildTextField('体重', 'weight', isNumber: true, hint: '单位: 斤')),
-                ],
-              ),
-              _buildEducationDropdown(),
-              _buildTextField('职业', 'occupation'),
-              _buildTextField('父母职业及家人几口', 'familyInfo'),
-              _buildTextField('年收入', 'annualIncome'),
-              Row(
-                children: [
-                  Expanded(child: _buildTextField('车', 'car')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildTextField('房', 'house')),
-                ],
-              ),
-              _buildMaritalStatusDropdown(),
-              _buildTextField('有无小孩', 'children', hint: '男女，几个，跟谁'),
-              _buildTextField('自我评价', 'selfEvaluation', maxLines: 3),
-              _buildTextField('择偶要求', 'partnerRequirements', maxLines: 3),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _saveClient,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: _isSaving
-                          ? const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isSaving ? null : _saveClient,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: _isSaving
+                              ? const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text('保存中...'),
+                                  ],
+                                )
+                              : const Text(
+                                  '确认新增',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
-                                SizedBox(width: 8),
-                                Text('保存中...'),
-                              ],
-                            )
-                          : const Text(
-                              '确认新增',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isSaving ? null : _clearForm,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
                       ),
-                      child: const Text(
-                        '清空表单',
-                        style: TextStyle(fontSize: 16),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _isSaving ? null : _clearForm,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text(
+                            '清空表单',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
+                  const SizedBox(height: 16),
                 ],
-              ),
-              const SizedBox(height: 16),
-            ],
+              );
+            },
           ),
         ),
       ),

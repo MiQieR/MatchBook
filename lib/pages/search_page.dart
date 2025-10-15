@@ -183,57 +183,119 @@ class _SearchPageState extends State<SearchPage> {
               Container(
                 padding: const EdgeInsets.all(16.0),
                 color: Colors.grey[50],
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('高级筛选', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
-                    Row(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // 判断是否为竖屏模式（宽度较小）
+                    final isPortrait = constraints.maxWidth < 600;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: _buildGenderFilter()),
-                        const SizedBox(width: 16),
-                        Expanded(child: _buildEducationDropdown()),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(child: _buildRangeField('出生年份', _minBirthYearController, _maxBirthYearController)),
-                        const SizedBox(width: 8),
-                        Expanded(child: _buildRangeField('身高(cm)', _minHeightController, _maxHeightController)),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _buildRangeField('体重(斤)', _minWeightController, _maxWeightController),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _occupationController,
-                            decoration: const InputDecoration(
-                              labelText: '职业关键词',
-                              border: OutlineInputBorder(),
-                              isDense: true,
-                            ),
+                        const Text('高级筛选', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        // 性别和学历筛选
+                        isPortrait
+                            ? Column(
+                                children: [
+                                  _buildGenderFilter(),
+                                  const SizedBox(height: 12),
+                                  _buildEducationDropdown(),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(child: _buildGenderFilter()),
+                                  const SizedBox(width: 16),
+                                  Expanded(child: _buildEducationDropdown()),
+                                ],
+                              ),
+                        const SizedBox(height: 12),
+                        // 出生年份、身高、体重筛选 - 根据横竖屏调整布局
+                        if (isPortrait) ...[
+                          // 竖屏：出生年份独占一行
+                          _buildRangeField('出生年份', _minBirthYearController, _maxBirthYearController),
+                          const SizedBox(height: 12),
+                          // 竖屏：身高和体重在同一行
+                          Row(
+                            children: [
+                              Expanded(child: _buildRangeField('身高(cm)', _minHeightController, _maxHeightController)),
+                              const SizedBox(width: 8),
+                              Expanded(child: _buildRangeField('体重(斤)', _minWeightController, _maxWeightController)),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextField(
-                            controller: _residenceController,
-                            decoration: const InputDecoration(
-                              labelText: '居住地关键词',
-                              border: OutlineInputBorder(),
-                              isDense: true,
-                            ),
+                        ] else ...[
+                          // 横屏：出生年份和身高在同一行
+                          Row(
+                            children: [
+                              Expanded(child: _buildRangeField('出生年份', _minBirthYearController, _maxBirthYearController)),
+                              const SizedBox(width: 8),
+                              Expanded(child: _buildRangeField('身高(cm)', _minHeightController, _maxHeightController)),
+                            ],
                           ),
-                        ),
+                          const SizedBox(height: 12),
+                          // 横屏：体重在同一行（但占一半位置）
+                          Row(
+                            children: [
+                              Expanded(child: _buildRangeField('体重(斤)', _minWeightController, _maxWeightController)),
+                              const SizedBox(width: 8),
+                              const Expanded(child: SizedBox()), // 占位，使布局对齐
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        // 职业和居住地
+                        isPortrait
+                            ? Column(
+                                children: [
+                                  TextField(
+                                    controller: _occupationController,
+                                    decoration: const InputDecoration(
+                                      labelText: '职业关键词',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    controller: _residenceController,
+                                    decoration: const InputDecoration(
+                                      labelText: '居住地关键词',
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _occupationController,
+                                      decoration: const InputDecoration(
+                                        labelText: '职业关键词',
+                                        border: OutlineInputBorder(),
+                                        isDense: true,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _residenceController,
+                                      decoration: const InputDecoration(
+                                        labelText: '居住地关键词',
+                                        border: OutlineInputBorder(),
+                                        isDense: true,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                        const SizedBox(height: 12),
+                        _buildMaritalStatusFilter(),
                       ],
-                    ),
-                    const SizedBox(height: 12),
-                    _buildMaritalStatusFilter(),
-                  ],
+                    );
+                  },
                 ),
               ),
             if (_searchResults.isNotEmpty)
@@ -356,42 +418,49 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildRangeField(String label, TextEditingController minController, TextEditingController maxController) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 判断是否为竖屏模式（宽度较小）
+        final isPortrait = constraints.maxWidth < 600;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: TextField(
-                controller: minController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: '最小值',
-                  border: OutlineInputBorder(),
-                  isDense: true,
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: minController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: isPortrait ? '最小' : '最小值',
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text('—'),
-            ),
-            Expanded(
-              child: TextField(
-                controller: maxController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  hintText: '最大值',
-                  border: OutlineInputBorder(),
-                  isDense: true,
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Text('—'),
                 ),
-              ),
+                Expanded(
+                  child: TextField(
+                    controller: maxController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: isPortrait ? '最大' : '最大值',
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -401,9 +470,9 @@ class _SearchPageState extends State<SearchPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12.0),
       child: InkWell(
-        onTap: () {
+        onTap: () async {
           // 导航到客户详情页面
-          Navigator.push(
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ClientDetailPage(
@@ -412,6 +481,11 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
           );
+
+          // 如果删除或编辑了客户，重新执行搜索刷新列表
+          if (result == true && mounted) {
+            _searchClients();
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
