@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../utils/theme_provider.dart' as theme_utils;
 import '../database/database.dart';
 import '../database/client.dart';
+import '../widgets/modern_card.dart';
+import '../widgets/gradient_button.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
@@ -251,59 +253,249 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('设置'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
       ),
-      body: ListView(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              '外观',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 外观设置
+            ModernCard(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFD0021B), Color(0xFFF75C5C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.palette,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        '外观',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Consumer<theme_utils.ThemeProvider>(
+                    builder: (context, themeProvider, child) {
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _showThemeDialog,
+                          borderRadius: BorderRadius.circular(12),
+                          splashColor: const Color(0xFFD0021B).withValues(alpha: 0.1),
+                          highlightColor: const Color(0xFFD0021B).withValues(alpha: 0.05),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.color_lens,
+                                  color: Colors.grey.shade600,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                const Expanded(
+                                  child: Text(
+                                    '主题模式',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  themeProvider.getThemeModeLabel(),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.grey.shade400,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
-          ),
-          Consumer<theme_utils.ThemeProvider>(
-            builder: (context, themeProvider, child) {
-              return ListTile(
-                leading: const Icon(Icons.palette),
-                title: const Text('主题模式'),
-                subtitle: Text(themeProvider.getThemeModeLabel()),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _showThemeDialog,
-              );
-            },
-          ),
-          const Divider(),
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              '数据管理',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+            const SizedBox(height: 24),
+
+            // 数据管理
+            ModernCard(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFD0021B), Color(0xFFF75C5C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.storage,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        '数据管理',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GradientButton(
+                          onPressed: _exportData,
+                          height: 60,
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.upload_file, color: Colors.white, size: 16),
+                              SizedBox(width: 6),
+                              Text(
+                                '导出数据',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GradientButton(
+                          onPressed: _importData,
+                          height: 60,
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.download, color: Colors.white, size: 16),
+                              SizedBox(width: 6),
+                              Text(
+                                '导入数据',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.upload_file),
-            title: const Text('导出数据'),
-            subtitle: const Text('将数据库导出为文件'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _exportData,
-          ),
-          ListTile(
-            leading: const Icon(Icons.download),
-            title: const Text('导入数据'),
-            subtitle: const Text('从文件导入数据'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _importData,
-          ),
-        ],
+            const SizedBox(height: 24),
+
+            // 应用信息
+            ModernCard(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFD0021B), Color(0xFFF75C5C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.info,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        '关于',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Row(
+                    children: [
+                      Icon(Icons.favorite, color: Color(0xFFD0021B), size: 16),
+                      SizedBox(width: 8),
+                      Text(
+                        '红娘客户管理系统',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '版本 1.0.0',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

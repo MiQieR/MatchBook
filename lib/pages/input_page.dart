@@ -6,6 +6,8 @@ import '../database/client.dart';
 import '../utils/text_parser.dart';
 import '../utils/plain_text_formatter.dart';
 import '../utils/clipboard_helper.dart';
+import '../widgets/gradient_button.dart';
+import '../widgets/modern_card.dart';
 
 class InputPage extends StatefulWidget {
   final AppDatabase database;
@@ -421,87 +423,175 @@ class _InputPageState extends State<InputPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // 一键识别区域 - 始终独占
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.shade200),
-                    ),
-                    padding: const EdgeInsets.all(16.0),
+                  ModernCard(
+                    padding: const EdgeInsets.all(20.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.auto_awesome, color: Colors.blue.shade700, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              '一键识别',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade700,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFD0021B), Color(0xFFF75C5C)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: _rawTextController,
-                          maxLines: 8,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                          enableInteractiveSelection: true,
-                          contextMenuBuilder: (context, editableTextState) {
-                            // 禁用系统粘贴菜单，改用我们的安全粘贴方法
-                            return const SizedBox.shrink();
-                          },
-                          inputFormatters: [
-                            PlainTextFormatter(), // 额外防护层
-                          ],
-                          decoration: InputDecoration(
-                            hintText: '使用下方「粘贴」按钮粘贴客户信息...\n\n例如：\n推荐：张三\n编号：12345\n性别：女\n...',
-                            border: const OutlineInputBorder(),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.all(12),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // 安全粘贴按钮
-                            ElevatedButton.icon(
-                              onPressed: _pasteFromClipboard,
-                              icon: const Icon(Icons.content_paste),
-                              label: const Text('粘贴'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green.shade600,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              child: const Icon(
+                                Icons.auto_awesome,
+                                color: Colors.white,
+                                size: 20,
                               ),
                             ),
                             const SizedBox(width: 12),
-                            if (_parseSuccessMessage != null)
-                              Expanded(
-                                child: Text(
-                                  _parseSuccessMessage!,
-                                  style: const TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
+                            const Text(
+                              '一键识别',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1A1A1A),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              width: 1,
+                            ),
+                            color: Colors.white,
+                          ),
+                          child: TextField(
+                            controller: _rawTextController,
+                            maxLines: 8,
+                            keyboardType: TextInputType.multiline,
+                            textInputAction: TextInputAction.newline,
+                            enableInteractiveSelection: true,
+                            contextMenuBuilder: (context, editableTextState) {
+                              return const SizedBox.shrink();
+                            },
+                            inputFormatters: [
+                              PlainTextFormatter(),
+                            ],
+                            decoration: const InputDecoration(
+                              hintText: '使用下方「粘贴」按钮粘贴客户信息...\n\n例如：\n推荐：张三\n编号：12345\n性别：女\n...',
+                              border: InputBorder.none,
+                              filled: true,
+                              fillColor: Colors.transparent,
+                              contentPadding: EdgeInsets.all(16),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            // 安全粘贴按钮 - 与识别按钮相同宽度
+                            Expanded(
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade600,
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.green.shade600.withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: _pasteFromClipboard,
+                                    borderRadius: BorderRadius.circular(24),
+                                    splashColor: Colors.white.withValues(alpha: 0.2),
+                                    highlightColor: Colors.white.withValues(alpha: 0.1),
+                                    child: Container(
+                                      height: 48,
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.content_paste, color: Colors.white, size: 14),
+                                          const SizedBox(width: 4),
+                                          const Text(
+                                            '粘贴',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            const SizedBox(width: 12),
-                            ElevatedButton.icon(
-                              onPressed: _parseText,
-                              icon: const Icon(Icons.smart_button),
-                              label: const Text('一键识别'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade600,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            ),
+                            const SizedBox(width: 10),
+                            if (_parseSuccessMessage != null)
+                              Expanded(
+                                flex: 2,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.green.shade200),
+                                  ),
+                                  child: Text(
+                                    _parseSuccessMessage!,
+                                    style: TextStyle(
+                                      color: Colors.green.shade700,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              )
+                            else
+                              const Expanded(child: SizedBox()),
+                            const SizedBox(width: 10),
+                            // 一键识别按钮 - 与粘贴按钮相同宽度
+                            Expanded(
+                              child: GradientButton(
+                                onPressed: _parseText,
+                                height: 48,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.smart_button, color: Colors.white, size: 14),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '识别',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -599,49 +689,55 @@ class _InputPageState extends State<InputPage> {
                     _buildTextField('自我评价', 'selfEvaluation', maxLines: 3),
                     _buildTextField('择偶要求', 'partnerRequirements', maxLines: 3),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton(
+                        child: GradientButton(
                           onPressed: _isSaving ? null : _saveClient,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
+                          isLoading: _isSaving,
+                          height: 56,
+                          child: const Text(
+                            '确认新增',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
-                          child: _isSaving
-                              ? const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                      ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text('保存中...'),
-                                  ],
-                                )
-                              : const Text(
-                                  '确认新增',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       Expanded(
-                        child: OutlinedButton(
-                          onPressed: _isSaving ? null : _clearForm,
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: const Color(0xFFD0021B),
+                              width: 1.5,
+                            ),
                           ),
-                          child: const Text(
-                            '清空表单',
-                            style: TextStyle(fontSize: 16),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _isSaving ? null : _clearForm,
+                              borderRadius: BorderRadius.circular(24),
+                              splashColor: const Color(0xFFD0021B).withValues(alpha: 0.1),
+                              highlightColor: const Color(0xFFD0021B).withValues(alpha: 0.05),
+                              child: Container(
+                                height: 56,
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  '清空表单',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFFD0021B),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),

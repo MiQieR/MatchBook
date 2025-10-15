@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../database/database.dart';
 import '../database/client.dart';
 import 'client_detail_page.dart';
+import '../widgets/modern_card.dart';
+import '../widgets/gradient_button.dart';
 
 class SearchPage extends StatefulWidget {
   final AppDatabase database;
@@ -121,57 +123,151 @@ class _SearchPageState extends State<SearchPage> {
         child: Column(
           children: [
             // 统一搜索框
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              color: Colors.blue[50],
+            ModernCard(
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
-                  TextField(
-                    controller: _keywordController,
-                    decoration: InputDecoration(
-                      hintText: '搜索客户编号、推荐人、自我评价、择偶要求等...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFD0021B), Color(0xFFF75C5C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.search,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    onSubmitted: (value) => _searchClients(),
+                      const SizedBox(width: 12),
+                      const Text(
+                        '查询客户',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                        width: 1,
+                      ),
+                      color: Colors.white,
+                    ),
+                    child: TextField(
+                      controller: _keywordController,
+                      decoration: const InputDecoration(
+                        hintText: '搜索客户编号、推荐人、自我评价、择偶要求等...',
+                        prefixIcon: Icon(Icons.search, color: Color(0xFFD0021B)),
+                        border: InputBorder.none,
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      ),
+                      onSubmitted: (value) => _searchClients(),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
+                        child: GradientButton(
                           onPressed: _isSearching ? null : _searchClients,
-                          icon: _isSearching
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Icon(Icons.search),
-                          label: Text(_isSearching ? '查询中...' : '查询'),
+                          isLoading: _isSearching,
+                          height: 60,
+                          child: Text(
+                            _isSearching ? '查询中...' : '查询',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _resetFilters,
-                          icon: const Icon(Icons.clear_all),
-                          label: const Text('重置'),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: const Color(0xFFD0021B),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _resetFilters,
+                              borderRadius: BorderRadius.circular(24),
+                              splashColor: const Color(0xFFD0021B).withValues(alpha: 0.1),
+                              highlightColor: const Color(0xFFD0021B).withValues(alpha: 0.05),
+                              child: Container(
+                                height: 56,
+                                alignment: Alignment.center,
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.clear_all, color: Color(0xFFD0021B), size: 18),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      '重置',
+                                      style: TextStyle(
+                                        color: Color(0xFFD0021B),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _showAdvancedFilters = !_showAdvancedFilters;
-                          });
-                        },
-                        icon: Icon(_showAdvancedFilters ? Icons.expand_less : Icons.expand_more),
-                        tooltip: '高级筛选',
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _showAdvancedFilters = !_showAdvancedFilters;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            splashColor: Colors.grey.shade300.withValues(alpha: 0.3),
+                            highlightColor: Colors.grey.shade300.withValues(alpha: 0.1),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Icon(
+                                _showAdvancedFilters ? Icons.expand_less : Icons.expand_more,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -301,14 +397,28 @@ class _SearchPageState extends State<SearchPage> {
             if (_searchResults.isNotEmpty)
               ...(_searchResults.map((client) => Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-                    child: _buildClientCard(client),
+                    child: _buildModernClientCard(client),
                   )).toList())
             else
-              const Padding(
-                padding: EdgeInsets.all(32.0),
-                child: Text(
-                  '未找到匹配的客户',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+              Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.search_off,
+                      size: 64,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '未找到匹配的客户',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -464,103 +574,110 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildClientCard(Client client) {
+  Widget _buildModernClientCard(Client client) {
     final age = _calculateAge(client.birthYear);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12.0),
-      child: InkWell(
-        onTap: () async {
-          // 导航到客户详情页面
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ClientDetailPage(
-                database: widget.database,
-                clientId: client.clientId,
-              ),
+    return ModernCard(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ClientDetailPage(
+              database: widget.database,
+              clientId: client.clientId,
             ),
-          );
+          ),
+        );
 
-          // 如果删除或编辑了客户，重新执行搜索刷新列表
-          if (result == true && mounted) {
-            _searchClients();
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        if (result == true && mounted) {
+          _searchClients();
+        }
+      },
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '客户编号: ${client.clientId}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFD0021B), Color(0xFFF75C5C)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: client.gender == Gender.male ? Colors.blue[100] : Colors.pink[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      client.gender.label,
-                      style: TextStyle(
-                        color: client.gender == Gender.male ? Colors.blue[800] : Colors.pink[800],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              _buildInfoRow('推荐人', client.recommender),
-              _buildInfoRow('年龄', '$age岁 (${client.birthYear}年出生)'),
-              _buildInfoRow('出生地', client.birthPlace),
-              _buildInfoRow('现居地', client.residence),
-              _buildInfoRow('身高体重', '${client.height}cm / ${client.weight}斤'),
-              _buildInfoRow('学历', client.education.label),
-              _buildInfoRow('职业', client.occupation),
-              _buildInfoRow('家庭情况', client.familyInfo),
-              _buildInfoRow('年收入', client.annualIncome),
-              _buildInfoRow('车', client.car),
-              _buildInfoRow('房', client.house),
-              _buildInfoRow('婚姻状态', client.maritalStatus.label),
-              _buildInfoRow('有无小孩', client.children),
-              const SizedBox(height: 8),
-              const Align(
-                alignment: Alignment.centerRight,
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 child: Text(
-                  '点击查看详情 >',
+                  '编号: ${client.clientId}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: client.gender == Gender.male
+                      ? Colors.blue.shade100
+                      : Colors.pink.shade100,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  client.gender.label,
                   style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 12,
+                    color: client.gender == Gender.male
+                        ? Colors.blue.shade800
+                        : Colors.pink.shade800,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
                   ),
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+          _buildModernInfoRow('推荐人', client.recommender),
+          _buildModernInfoRow('年龄', '$age岁 (${client.birthYear}年出生)'),
+          _buildModernInfoRow('出生地', client.birthPlace),
+          _buildModernInfoRow('现居地', client.residence),
+          _buildModernInfoRow('身高体重', '${client.height}cm / ${client.weight}斤'),
+          _buildModernInfoRow('学历', client.education.label),
+          _buildModernInfoRow('职业', client.occupation),
+          _buildModernInfoRow('婚姻状态', client.maritalStatus.label),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                '查看详情',
+                style: TextStyle(
+                  color: const Color(0xFFD0021B),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: const Color(0xFFD0021B),
+                size: 12,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildModernInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      padding: const EdgeInsets.symmetric(vertical: 3.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -568,11 +685,21 @@ class _SearchPageState extends State<SearchPage> {
             width: 80,
             child: Text(
               '$label:',
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF666666),
+                fontSize: 13,
+              ),
             ),
           ),
           Expanded(
-            child: Text(value.isEmpty ? '--' : value),
+            child: Text(
+              value.isEmpty ? '--' : value,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
           ),
         ],
       ),
