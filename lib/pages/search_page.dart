@@ -119,11 +119,15 @@ class _SearchPageState extends State<SearchPage> {
         title: const Text('查询客户'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // 统一搜索框
-            ModernCard(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isLandscape = constraints.maxWidth >= 900;
+          
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                // 统一搜索框
+                ModernCard(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
@@ -170,8 +174,7 @@ class _SearchPageState extends State<SearchPage> {
                     child: TextField(
                       controller: _keywordController,
                       decoration: const InputDecoration(
-                        hintText: '搜索客户编号、推荐人、自我评价、择偶要求等...',
-                        prefixIcon: Icon(Icons.search, color: Color(0xFFD0021B)),
+                        hintText: '搜索 编号/推荐人/现居地/职业/择偶要求 等',
                         border: InputBorder.none,
                         filled: true,
                         fillColor: Colors.transparent,
@@ -187,21 +190,6 @@ class _SearchPageState extends State<SearchPage> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(
-                        child: GradientButton(
-                          onPressed: _isSearching ? null : _searchClients,
-                          isLoading: _isSearching,
-                          height: 60,
-                          child: Text(
-                            _isSearching ? '查询中...' : '查询',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
                       Expanded(
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
@@ -238,6 +226,28 @@ class _SearchPageState extends State<SearchPage> {
                                 ),
                               ),
                             ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GradientButton(
+                          onPressed: _isSearching ? null : _searchClients,
+                          isLoading: _isSearching,
+                          height: 60,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.search, color: Colors.white, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isSearching ? '搜索中...' : '搜索',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -393,36 +403,54 @@ class _SearchPageState extends State<SearchPage> {
                     );
                   },
                 ),
-              ),
-            if (_searchResults.isNotEmpty)
-              ...(_searchResults.map((client) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-                    child: _buildModernClientCard(client),
-                  )).toList())
-            else
-              Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.search_off,
-                      size: 64,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      '未找到匹配的客户',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
                 ),
-              ),
-          ],
-        ),
+                if (_searchResults.isNotEmpty)
+                  isLandscape
+                    ? Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: _searchResults.map((client) {
+                            return SizedBox(
+                              width: (constraints.maxWidth - 32 - 24) / 3,
+                              child: _buildModernClientCard(client),
+                            );
+                          }).toList(),
+                        ),
+                      )
+                    : Column(
+                        children: _searchResults.map((client) => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                          child: _buildModernClientCard(client),
+                        )).toList(),
+                      )
+                else
+                  Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          '未找到匹配的客户',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -472,15 +500,20 @@ class _SearchPageState extends State<SearchPage> {
             border: OutlineInputBorder(),
             isDense: true,
           ),
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+            color: Colors.black87,
+          ),
           items: [
             const DropdownMenuItem<Education>(
               value: null,
-              child: Text('不限'),
+              child: Text('不限', style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal)),
             ),
             ...Education.values.map((Education education) {
               return DropdownMenuItem<Education>(
                 value: education,
-                child: Text(education.label),
+                child: Text(education.label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal)),
               );
             }),
           ],
@@ -649,7 +682,6 @@ class _SearchPageState extends State<SearchPage> {
           _buildModernInfoRow('身高体重', '${client.height}cm / ${client.weight}斤'),
           _buildModernInfoRow('学历', client.education.label),
           _buildModernInfoRow('职业', client.occupation),
-          _buildModernInfoRow('婚姻状态', client.maritalStatus.label),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,

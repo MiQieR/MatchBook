@@ -693,22 +693,6 @@ class _InputPageState extends State<InputPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: GradientButton(
-                          onPressed: _isSaving ? null : _saveClient,
-                          isLoading: _isSaving,
-                          height: 56,
-                          child: const Text(
-                            '确认新增',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           decoration: BoxDecoration(
@@ -729,7 +713,7 @@ class _InputPageState extends State<InputPage> {
                                 height: 56,
                                 alignment: Alignment.center,
                                 child: const Text(
-                                  '清空表单',
+                                  '清空已填',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
@@ -737,6 +721,23 @@ class _InputPageState extends State<InputPage> {
                                   ),
                                 ),
                               ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: GradientButton(
+                          onPressed: _isSaving ? null : _saveClient,
+                          isLoading: _isSaving,
+                          height: 56,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          child: const Text(
+                            '确认新增',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
                             ),
                           ),
                         ),

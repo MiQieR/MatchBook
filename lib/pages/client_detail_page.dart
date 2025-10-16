@@ -151,197 +151,363 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 头部信息卡片
-                      Card(
-                        elevation: 4,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              Row(
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isLandscape = constraints.maxWidth >= 900;
+                    
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 头部信息卡片
+                          Card(
+                            elevation: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).primaryColor,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      '客户编号: ${_client!.clientId}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).primaryColor,
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          '客户编号: ${_client!.clientId}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: _client!.gender == Gender.male
-                                          ? Colors.blue[100]
-                                          : Colors.pink[100],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      _client!.gender.label,
-                                      style: TextStyle(
-                                        color: _client!.gender == Gender.male
-                                            ? Colors.blue[800]
-                                            : Colors.pink[800],
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16,
+                                      const Spacer(),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: _client!.gender == Gender.male
+                                              ? Colors.blue[100]
+                                              : Colors.pink[100],
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          _client!.gender.label,
+                                          style: TextStyle(
+                                            color: _client!.gender == Gender.male
+                                                ? Colors.blue[800]
+                                                : Colors.pink[800],
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 16,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                          // 根据横竖屏调整布局
+                          if (isLandscape)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 左侧：基本信息
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        '基本信息',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            children: [
+                                              _buildInfoRow('推荐人', _client!.recommender),
+                                              _buildInfoRow('年龄',
+                                                  '${_calculateAge(_client!.birthYear)}岁 (${_client!.birthYear}年出生)'),
+                                              _buildInfoRow('出生地', _client!.birthPlace),
+                                              _buildInfoRow('现居地', _client!.residence),
+                                              _buildInfoRow('身高',
+                                                  '${_client!.height == 0 ? '--' : '${_client!.height}cm'}'),
+                                              _buildInfoRow('体重',
+                                                  '${_client!.weight == 0 ? '--' : '${_client!.weight}斤'}'),
+                                              _buildInfoRow('学历', _client!.education.label),
+                                              _buildInfoRow('职业', _client!.occupation),
+                                              _buildInfoRow('婚姻状态', _client!.maritalStatus.label),
+                                              _buildInfoRow('有无小孩', _client!.children),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                // 右侧：经济状况、家庭情况、自我评价、择偶要求
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // 经济状况
+                                      const Text(
+                                        '经济状况',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            children: [
+                                              _buildInfoRow('年收入', _client!.annualIncome),
+                                              _buildInfoRow('车', _client!.car),
+                                              _buildInfoRow('房', _client!.house),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // 家庭情况
+                                      const Text(
+                                        '家庭情况',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _client!.familyInfo.isEmpty
+                                                    ? '--'
+                                                    : _client!.familyInfo,
+                                                style: const TextStyle(fontSize: 15),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // 自我评价
+                                      const Text(
+                                        '自我评价',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _client!.selfEvaluation.isEmpty
+                                                    ? '--'
+                                                    : _client!.selfEvaluation,
+                                                style: const TextStyle(fontSize: 15),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // 择偶要求
+                                      const Text(
+                                        '择偶要求',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Card(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _client!.partnerRequirements.isEmpty
+                                                    ? '--'
+                                                    : _client!.partnerRequirements,
+                                                style: const TextStyle(fontSize: 15),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            // 竖屏：保持原有布局
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 基本信息
+                                const Text(
+                                  '基本信息',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      children: [
+                                        _buildInfoRow('推荐人', _client!.recommender),
+                                        _buildInfoRow('年龄',
+                                            '${_calculateAge(_client!.birthYear)}岁 (${_client!.birthYear}年出生)'),
+                                        _buildInfoRow('出生地', _client!.birthPlace),
+                                        _buildInfoRow('现居地', _client!.residence),
+                                        _buildInfoRow('身高',
+                                            '${_client!.height == 0 ? '--' : '${_client!.height}cm'}'),
+                                        _buildInfoRow('体重',
+                                            '${_client!.weight == 0 ? '--' : '${_client!.weight}斤'}'),
+                                        _buildInfoRow('学历', _client!.education.label),
+                                        _buildInfoRow('职业', _client!.occupation),
+                                        _buildInfoRow('婚姻状态', _client!.maritalStatus.label),
+                                        _buildInfoRow('有无小孩', _client!.children),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                // 经济状况
+                                const Text(
+                                  '经济状况',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      children: [
+                                        _buildInfoRow('年收入', _client!.annualIncome),
+                                        _buildInfoRow('车', _client!.car),
+                                        _buildInfoRow('房', _client!.house),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                // 家庭情况
+                                const Text(
+                                  '家庭情况',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _client!.familyInfo.isEmpty
+                                              ? '--'
+                                              : _client!.familyInfo,
+                                          style: const TextStyle(fontSize: 15),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                // 自我评价
+                                const Text(
+                                  '自我评价',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _client!.selfEvaluation.isEmpty
+                                              ? '--'
+                                              : _client!.selfEvaluation,
+                                          style: const TextStyle(fontSize: 15),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                // 择偶要求
+                                const Text(
+                                  '择偶要求',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _client!.partnerRequirements.isEmpty
+                                              ? '--'
+                                              : _client!.partnerRequirements,
+                                          style: const TextStyle(fontSize: 15),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      // 基本信息
-                      const Text(
-                        '基本信息',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              _buildInfoRow('推荐人', _client!.recommender),
-                              _buildInfoRow('年龄',
-                                  '${_calculateAge(_client!.birthYear)}岁 (${_client!.birthYear}年出生)'),
-                              _buildInfoRow('出生地', _client!.birthPlace),
-                              _buildInfoRow('现居地', _client!.residence),
-                              _buildInfoRow('身高',
-                                  '${_client!.height == 0 ? '--' : '${_client!.height}cm'}'),
-                              _buildInfoRow('体重',
-                                  '${_client!.weight == 0 ? '--' : '${_client!.weight}斤'}'),
-                              _buildInfoRow('学历', _client!.education.label),
-                              _buildInfoRow('职业', _client!.occupation),
-                              _buildInfoRow('婚姻状态', _client!.maritalStatus.label),
-                              _buildInfoRow('有无小孩', _client!.children),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // 经济状况
-                      const Text(
-                        '经济状况',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              _buildInfoRow('年收入', _client!.annualIncome),
-                              _buildInfoRow('车', _client!.car),
-                              _buildInfoRow('房', _client!.house),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // 家庭情况
-                      const Text(
-                        '家庭情况',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _client!.familyInfo.isEmpty
-                                    ? '--'
-                                    : _client!.familyInfo,
-                                style: const TextStyle(fontSize: 15),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // 自我评价
-                      const Text(
-                        '自我评价',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _client!.selfEvaluation.isEmpty
-                                    ? '--'
-                                    : _client!.selfEvaluation,
-                                style: const TextStyle(fontSize: 15),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // 择偶要求
-                      const Text(
-                        '择偶要求',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _client!.partnerRequirements.isEmpty
-                                    ? '--'
-                                    : _client!.partnerRequirements,
-                                style: const TextStyle(fontSize: 15),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
     );
   }
