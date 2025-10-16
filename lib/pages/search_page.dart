@@ -486,19 +486,34 @@ class _SearchPageState extends State<SearchPage> {
       children: [
         Row(
           children: [
-            // 模糊搜索选项
-            const Text('模糊搜索', style: TextStyle(fontWeight: FontWeight.w500)),
-            Checkbox(
-              value: _useFuzzySearch,
-              onChanged: (bool? value) {
-                setState(() {
-                  _useFuzzySearch = value ?? false;
-                });
-              },
-            ),
-            if (isPortrait) const Spacer(),
-            if (isPortrait) ...[
-              // 竖屏：性别选项紧凑靠右
+            if (!isPortrait) ...[
+              // 横屏：模糊搜索在浅色圆角矩形背景框内（占1/3宽度）
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('模糊搜索', style: TextStyle(fontWeight: FontWeight.w500)),
+                      Checkbox(
+                        value: _useFuzzySearch,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _useFuzzySearch = value ?? false;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 120),
+              // 性别选项紧跟在背景框右侧
               const Text('性别', style: TextStyle(fontWeight: FontWeight.w500)),
               InkWell(
                 onTap: () {
@@ -548,13 +563,20 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 );
               }),
+              Expanded(flex: 2, child: Container()), // 占据剩余空间
             ],
-            if (!isPortrait) ...[
-              // 横屏：性别选项与模糊搜索在同一行，性别选项左侧贴中线
-              Expanded(
-                flex: 1,
-                child: Container(), // 占据左侧50%的空间
+            if (isPortrait) ...[
+              // 竖屏：保持原样
+              const Text('模糊搜索', style: TextStyle(fontWeight: FontWeight.w500)),
+              Checkbox(
+                value: _useFuzzySearch,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _useFuzzySearch = value ?? false;
+                  });
+                },
               ),
+              const Spacer(),
               const Text('性别', style: TextStyle(fontWeight: FontWeight.w500)),
               InkWell(
                 onTap: () {
