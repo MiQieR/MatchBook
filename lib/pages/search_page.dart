@@ -161,38 +161,47 @@ class _SearchPageState extends State<SearchPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: Colors.grey.shade300,
-                        width: 1,
+                  TextField(
+                    controller: _keywordController,
+                    decoration: InputDecoration(
+                      hintText: '搜索 编号/推荐人/现居地/职业/择偶要求 等',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade300,
+                          width: 1,
+                        ),
                       ),
-                      color: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade300,
+                          width: 1,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade300,
+                          width: 1,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     ),
-                    child: TextField(
-                      controller: _keywordController,
-                      decoration: const InputDecoration(
-                        hintText: '搜索 编号/推荐人/现居地/职业/择偶要求 等',
-                        border: InputBorder.none,
-                        filled: true,
-                        fillColor: Colors.transparent,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      ),
-                      onSubmitted: (value) => _searchClients(),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        height: 1.5,
-                      ),
+                    onSubmitted: (value) => _searchClients(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.5,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
+                        child: Container(
+                          height: 60,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
@@ -202,16 +211,16 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                           child: Material(
                             color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(24),
                             child: InkWell(
                               onTap: _resetFilters,
                               borderRadius: BorderRadius.circular(24),
                               splashColor: const Color(0xFFD0021B).withValues(alpha: 0.1),
                               highlightColor: const Color(0xFFD0021B).withValues(alpha: 0.05),
-                              child: Container(
-                                height: 56,
-                                alignment: Alignment.center,
-                                child: const Row(
+                              child: const Center(
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(Icons.clear_all, color: Color(0xFFD0021B), size: 18),
                                     SizedBox(width: 8),

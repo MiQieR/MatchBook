@@ -458,39 +458,48 @@ class _InputPageState extends State<InputPage> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.grey.shade300,
-                              width: 1,
+                        TextField(
+                          controller: _rawTextController,
+                          maxLines: 8,
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
+                          enableInteractiveSelection: true,
+                          contextMenuBuilder: (context, editableTextState) {
+                            return const SizedBox.shrink();
+                          },
+                          inputFormatters: [
+                            PlainTextFormatter(),
+                          ],
+                          decoration: InputDecoration(
+                            hintText: '使用下方「粘贴」按钮粘贴客户信息...\n\n例如：\n推荐：张三\n编号：12345\n性别：女\n...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
                             ),
-                            color: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.all(16),
                           ),
-                          child: TextField(
-                            controller: _rawTextController,
-                            maxLines: 8,
-                            keyboardType: TextInputType.multiline,
-                            textInputAction: TextInputAction.newline,
-                            enableInteractiveSelection: true,
-                            contextMenuBuilder: (context, editableTextState) {
-                              return const SizedBox.shrink();
-                            },
-                            inputFormatters: [
-                              PlainTextFormatter(),
-                            ],
-                            decoration: const InputDecoration(
-                              hintText: '使用下方「粘贴」按钮粘贴客户信息...\n\n例如：\n推荐：张三\n编号：12345\n性别：女\n...',
-                              border: InputBorder.none,
-                              filled: true,
-                              fillColor: Colors.transparent,
-                              contentPadding: EdgeInsets.all(16),
-                            ),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              height: 1.5,
-                            ),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            height: 1.5,
                           ),
                         ),
                         const SizedBox(height: 16),
