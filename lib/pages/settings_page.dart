@@ -495,7 +495,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    '版本 1.0.0',
+                                    '版本 1.0.1',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.grey,
