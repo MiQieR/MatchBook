@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:matchmaker_db/utils/text_parser.dart';
+import 'package:MatchBook/utils/text_parser.dart';
 
 void main() {
   group('ClientTextParser Tests', () {

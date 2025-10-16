@@ -105,7 +105,7 @@ class AboutPage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildInfoRow(context, Icons.numbers, '版本号', '1.0.0+1'),
+                  _buildInfoRow(context, Icons.numbers, '版本号', 'v1.0.0'),
                 ],
               ),
             ),
@@ -263,7 +263,44 @@ class AboutPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildInfoRow(context, Icons.shield_outlined, '开源协议', 'MIT License'),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {}, // 不执行任何操作
+                      borderRadius: BorderRadius.circular(12),
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.shield_outlined,
+                              color: Colors.grey.shade600,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Text(
+                                '开源协议',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              'MIT License',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

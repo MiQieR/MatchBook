@@ -1,4 +1,4 @@
-package com.example.matchmaker_db
+package com.miqier.matchbook
 
 import android.content.ClipboardManager
 import android.content.Context

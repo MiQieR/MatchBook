@@ -117,7 +117,7 @@
 
 ```bash
 git clone <repository-url>
-cd matchmaker_db
+cd MatchBook
 ```
 
 ### 安装依赖

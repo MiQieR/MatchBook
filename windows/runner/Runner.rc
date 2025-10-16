@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "matchmaker_db" "\0"
+            VALUE "FileDescription", "MatchBook" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "matchmaker_db" "\0"
+            VALUE "InternalName", "MatchBook" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "matchmaker_db.exe" "\0"
-            VALUE "ProductName", "matchmaker_db" "\0"
+            VALUE "OriginalFilename", "MatchBook.exe" "\0"
+            VALUE "ProductName", "MatchBook" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

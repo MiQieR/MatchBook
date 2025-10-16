@@ -1,4 +1,4 @@
-name: matchmaker_db
+name: MatchBook
 description: "姻缘册 - 红娘客户管理系统"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.

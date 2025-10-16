@@ -117,7 +117,7 @@ Each client contains the following information:
 
 ```bash
 git clone <repository-url>
-cd matchmaker_db
+cd MatchBook
 ```
 
 ### Install Dependencies

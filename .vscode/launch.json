@@ -5,27 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "matchmaker_db (Android)",
+            "name": "MatchBook (Android)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
             "deviceId": "emulator-5554"
         },
         {
-            "name": "matchmaker_db",
+            "name": "MatchBook",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart"
         },
         {
-            "name": "matchmaker_db (profile mode)",
+            "name": "MatchBook (profile mode)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
             "flutterMode": "profile"
         },
         {
-            "name": "matchmaker_db (release mode)",
+            "name": "MatchBook (release mode)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",

@@ -14,7 +14,10 @@
       "Bash(findstr:*)",
       "Bash(del nul)",
       "Bash(rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(dir:*)",
+      "Bash(flutter:*)",
+      "Bash(./gradlew:*)"
     ],
     "deny": [],
     "ask": []
