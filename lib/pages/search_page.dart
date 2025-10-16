@@ -31,6 +31,9 @@ class _SearchPageState extends State<SearchPage> {
   List<Client> _searchResults = [];
   bool _isSearching = false;
   bool _showAdvancedFilters = false;
+  bool _useFuzzySearch = false; // 模糊搜索(或逻辑)
+  bool _hasCar = false; // 有车
+  bool _hasHouse = false; // 有房
 
   @override
   void dispose() {
@@ -54,6 +57,7 @@ class _SearchPageState extends State<SearchPage> {
     try {
       final results = await widget.database.searchClients(
         keyword: _keywordController.text.isNotEmpty ? _keywordController.text : null,
+        useFuzzySearch: _useFuzzySearch,
         genders: _selectedGenders.isNotEmpty ? _selectedGenders.toList() : null,
         minBirthYear: _minBirthYearController.text.isNotEmpty
             ? int.tryParse(_minBirthYearController.text) : null,
@@ -71,6 +75,8 @@ class _SearchPageState extends State<SearchPage> {
         occupation: _occupationController.text.isNotEmpty ? _occupationController.text : null,
         residence: _residenceController.text.isNotEmpty ? _residenceController.text : null,
         maritalStatuses: _selectedMaritalStatuses.isNotEmpty ? _selectedMaritalStatuses.toList() : null,
+        hasCar: _hasCar ? true : null,
+        hasHouse: _hasHouse ? true : null,
       );
 
       setState(() {
@@ -104,6 +110,9 @@ class _SearchPageState extends State<SearchPage> {
       _selectedEducation = null;
       _selectedMaritalStatuses.clear();
       _searchResults.clear();
+      _useFuzzySearch = false;
+      _hasCar = false;
+      _hasHouse = false;
     });
   }
 
@@ -164,7 +173,7 @@ class _SearchPageState extends State<SearchPage> {
                   TextField(
                     controller: _keywordController,
                     decoration: InputDecoration(
-                      hintText: '搜索 编号/推荐人/现居地/职业/择偶要求 等',
+                      hintText: '搜索 编号/推荐人/现居地/职业 等（空格分隔）',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide(
@@ -308,28 +317,29 @@ class _SearchPageState extends State<SearchPage> {
                       children: [
                         const Text('高级筛选', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
-                        // 性别和学历筛选
-                        isPortrait
-                            ? Column(
-                                children: [
-                                  _buildGenderFilter(),
-                                  const SizedBox(height: 12),
-                                  _buildEducationDropdown(),
-                                ],
-                              )
-                            : Row(
-                                children: [
-                                  Expanded(child: _buildGenderFilter()),
-                                  const SizedBox(width: 16),
-                                  Expanded(child: _buildEducationDropdown()),
-                                ],
-                              ),
+                        // 模糊搜索和性别
+                        _buildGenderAndFuzzySearchFilter(),
                         const SizedBox(height: 12),
-                        // 出生年份、身高、体重筛选 - 根据横竖屏调整布局
+                        // 学历和出生年份 - 根据横竖屏调整布局
                         if (isPortrait) ...[
+                          // 竖屏：学历独占一行
+                          _buildEducationDropdown(),
+                          const SizedBox(height: 12),
                           // 竖屏：出生年份独占一行
                           _buildRangeField('出生年份', _minBirthYearController, _maxBirthYearController),
-                          const SizedBox(height: 12),
+                        ] else ...[
+                          // 横屏：学历和出生年份在同一行
+                          Row(
+                            children: [
+                              Expanded(child: _buildEducationDropdown()),
+                              const SizedBox(width: 8),
+                              Expanded(child: _buildRangeField('出生年份', _minBirthYearController, _maxBirthYearController)),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        // 身高和体重筛选 - 根据横竖屏调整布局
+                        if (isPortrait) ...[
                           // 竖屏：身高和体重在同一行
                           Row(
                             children: [
@@ -339,21 +349,12 @@ class _SearchPageState extends State<SearchPage> {
                             ],
                           ),
                         ] else ...[
-                          // 横屏：出生年份和身高在同一行
+                          // 横屏：身高和体重在同一行
                           Row(
                             children: [
-                              Expanded(child: _buildRangeField('出生年份', _minBirthYearController, _maxBirthYearController)),
-                              const SizedBox(width: 8),
                               Expanded(child: _buildRangeField('身高(cm)', _minHeightController, _maxHeightController)),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          // 横屏：体重在同一行（但占一半位置）
-                          Row(
-                            children: [
-                              Expanded(child: _buildRangeField('体重(斤)', _minWeightController, _maxWeightController)),
                               const SizedBox(width: 8),
-                              const Expanded(child: SizedBox()), // 占位，使布局对齐
+                              Expanded(child: _buildRangeField('体重(斤)', _minWeightController, _maxWeightController)),
                             ],
                           ),
                         ],
@@ -407,7 +408,22 @@ class _SearchPageState extends State<SearchPage> {
                                 ],
                               ),
                         const SizedBox(height: 12),
-                        _buildMaritalStatusFilter(),
+                        // 有车和有房筛选 - 根据横竖屏调整布局
+                        if (isPortrait) ...[
+                          // 竖屏：有车和有房在婚姻状态上方
+                          _buildCarAndHouseFilter(),
+                          const SizedBox(height: 12),
+                          _buildMaritalStatusFilter(),
+                        ] else ...[
+                          // 横屏：有车和有房与婚姻状态在同一行
+                          Row(
+                            children: [
+                              Expanded(child: _buildCarAndHouseFilter()),
+                              const SizedBox(width: 16),
+                              Expanded(child: _buildMaritalStatusFilter()),
+                            ],
+                          ),
+                        ],
                       ],
                     );
                   },
@@ -464,34 +480,48 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildGenderFilter() {
+  Widget _buildGenderAndFuzzySearchFilter() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('性别', style: TextStyle(fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
         Row(
-          children: Gender.values.map((gender) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Checkbox(
-                  value: _selectedGenders.contains(gender),
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        _selectedGenders.add(gender);
-                      } else {
-                        _selectedGenders.remove(gender);
-                      }
-                    });
-                  },
-                ),
-                Text(gender.label),
-                const SizedBox(width: 16),
-              ],
-            );
-          }).toList(),
+          children: [
+            // 模糊搜索选项
+            const Text('模糊搜索', style: TextStyle(fontWeight: FontWeight.w500)),
+            Checkbox(
+              value: _useFuzzySearch,
+              onChanged: (bool? value) {
+                setState(() {
+                  _useFuzzySearch = value ?? false;
+                });
+              },
+            ),
+            const SizedBox(width: 60),
+            // 性别选项
+            const Text('性别', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(width: 8),
+            ...Gender.values.map((gender) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Checkbox(
+                    value: _selectedGenders.contains(gender),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          _selectedGenders.add(gender);
+                        } else {
+                          _selectedGenders.remove(gender);
+                        }
+                      });
+                    },
+                  ),
+                  Text(gender.label),
+                  const SizedBox(width: 4),
+                ],
+              );
+            }),
+          ],
         ),
       ],
     );
@@ -564,6 +594,37 @@ class _SearchPageState extends State<SearchPage> {
               ],
             );
           }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCarAndHouseFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Checkbox(
+              value: _hasCar,
+              onChanged: (bool? value) {
+                setState(() {
+                  _hasCar = value ?? false;
+                });
+              },
+            ),
+            const Text('有车', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(width: 24),
+            Checkbox(
+              value: _hasHouse,
+              onChanged: (bool? value) {
+                setState(() {
+                  _hasHouse = value ?? false;
+                });
+              },
+            ),
+            const Text('有房', style: TextStyle(fontWeight: FontWeight.w500)),
+          ],
         ),
       ],
     );

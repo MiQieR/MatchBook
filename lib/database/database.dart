@@ -36,6 +36,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<Client>> searchClients({
     String? keyword,
+    bool useFuzzySearch = false, // 模糊搜索(或逻辑)
     List<Gender>? genders,
     int? minBirthYear,
     int? maxBirthYear,
@@ -47,25 +48,59 @@ class AppDatabase extends _$AppDatabase {
     String? occupation,
     String? residence,
     List<MaritalStatus>? maritalStatuses,
+    bool? hasCar, // 有车筛选
+    bool? hasHouse, // 有房筛选
   }) {
     final query = select(clients);
 
-    // 统一搜索关键词
+    // 统一搜索关键词 - 支持多关键词AND逻辑或OR逻辑
     if (keyword != null && keyword.isNotEmpty) {
-      query.where((tbl) =>
-        tbl.clientId.contains(keyword) |
-        tbl.recommender.contains(keyword) |
-        tbl.birthPlace.contains(keyword) |
-        tbl.residence.contains(keyword) |
-        tbl.occupation.contains(keyword) |
-        tbl.familyInfo.contains(keyword) |
-        tbl.annualIncome.contains(keyword) |
-        tbl.car.contains(keyword) |
-        tbl.house.contains(keyword) |
-        tbl.children.contains(keyword) |
-        tbl.selfEvaluation.contains(keyword) |
-        tbl.partnerRequirements.contains(keyword)
-      );
+      // 按空格分割关键词
+      final keywords = keyword.trim().split(RegExp(r'\s+'));
+
+      if (useFuzzySearch) {
+        // 模糊搜索(或逻辑): 只要匹配任意一个关键词即可
+        query.where((tbl) {
+          Expression<bool>? condition;
+          for (final kw in keywords) {
+            if (kw.isEmpty) continue;
+            final kwCondition = tbl.clientId.contains(kw) |
+              tbl.recommender.contains(kw) |
+              tbl.birthPlace.contains(kw) |
+              tbl.residence.contains(kw) |
+              tbl.occupation.contains(kw) |
+              tbl.familyInfo.contains(kw) |
+              tbl.annualIncome.contains(kw) |
+              tbl.car.contains(kw) |
+              tbl.house.contains(kw) |
+              tbl.children.contains(kw) |
+              tbl.selfEvaluation.contains(kw) |
+              tbl.partnerRequirements.contains(kw);
+
+            condition = condition == null ? kwCondition : (condition | kwCondition);
+          }
+          return condition ?? Constant(false);
+        });
+      } else {
+        // 精确搜索(且逻辑): 所有关键词都必须匹配
+        for (final kw in keywords) {
+          if (kw.isEmpty) continue;
+          query.where((tbl) =>
+            tbl.clientId.contains(kw) |
+            tbl.recommender.contains(kw) |
+            tbl.birthPlace.contains(kw) |
+            tbl.residence.contains(kw) |
+            tbl.occupation.contains(kw) |
+            tbl.familyInfo.contains(kw) |
+            tbl.annualIncome.contains(kw) |
+            tbl.car.contains(kw) |
+            tbl.house.contains(kw) |
+            tbl.children.contains(kw) |
+            tbl.selfEvaluation.contains(kw) |
+            tbl.partnerRequirements.contains(kw)
+          );
+        }
+      }
     }
 
     if (genders != null && genders.isNotEmpty) {
@@ -110,6 +145,16 @@ class AppDatabase extends _$AppDatabase {
 
     if (maritalStatuses != null && maritalStatuses.isNotEmpty) {
       query.where((tbl) => tbl.maritalStatus.isIn(maritalStatuses.map((m) => m.index)));
+    }
+
+    // 有车筛选: 勾选后,只显示car字段有内容的客户
+    if (hasCar == true) {
+      query.where((tbl) => tbl.car.isNotValue(''));
+    }
+
+    // 有房筛选: 勾选后,只显示house字段有内容的客户
+    if (hasHouse == true) {
+      query.where((tbl) => tbl.house.isNotValue(''));
     }
 
     return query.get();
