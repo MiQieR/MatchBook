@@ -25,7 +25,7 @@ class _SearchPageState extends State<SearchPage> {
   final _occupationController = TextEditingController();
   final _residenceController = TextEditingController();
 
-  final Set<Gender> _selectedGenders = {};
+  Gender? _selectedGender;
   Education? _selectedEducation;
   final Set<MaritalStatus> _selectedMaritalStatuses = {};
   List<Client> _searchResults = [];
@@ -58,7 +58,7 @@ class _SearchPageState extends State<SearchPage> {
       final results = await widget.database.searchClients(
         keyword: _keywordController.text.isNotEmpty ? _keywordController.text : null,
         useFuzzySearch: _useFuzzySearch,
-        genders: _selectedGenders.isNotEmpty ? _selectedGenders.toList() : null,
+        genders: _selectedGender != null ? [_selectedGender!] : null,
         minBirthYear: _minBirthYearController.text.isNotEmpty
             ? int.tryParse(_minBirthYearController.text) : null,
         maxBirthYear: _maxBirthYearController.text.isNotEmpty
@@ -106,7 +106,7 @@ class _SearchPageState extends State<SearchPage> {
       _maxWeightController.clear();
       _occupationController.clear();
       _residenceController.clear();
-      _selectedGenders.clear();
+      _selectedGender = null;
       _selectedEducation = null;
       _selectedMaritalStatuses.clear();
       _searchResults.clear();
@@ -318,7 +318,7 @@ class _SearchPageState extends State<SearchPage> {
                         const Text('高级筛选', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
                         // 模糊搜索和性别
-                        _buildGenderAndFuzzySearchFilter(),
+                        _buildGenderAndFuzzySearchFilter(isPortrait),
                         const SizedBox(height: 12),
                         // 学历和出生年份 - 根据横竖屏调整布局
                         if (isPortrait) ...[
@@ -480,7 +480,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildGenderAndFuzzySearchFilter() {
+  Widget _buildGenderAndFuzzySearchFilter(bool isPortrait) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -496,31 +496,115 @@ class _SearchPageState extends State<SearchPage> {
                 });
               },
             ),
-            const SizedBox(width: 60),
-            // 性别选项
-            const Text('性别', style: TextStyle(fontWeight: FontWeight.w500)),
-            const SizedBox(width: 8),
-            ...Gender.values.map((gender) {
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Checkbox(
-                    value: _selectedGenders.contains(gender),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value == true) {
-                          _selectedGenders.add(gender);
-                        } else {
-                          _selectedGenders.remove(gender);
-                        }
-                      });
-                    },
+            if (isPortrait) const Spacer(),
+            if (isPortrait) ...[
+              // 竖屏：性别选项紧凑靠右
+              const Text('性别', style: TextStyle(fontWeight: FontWeight.w500)),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedGender = null;
+                  });
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<Gender?>(
+                      value: null,
+                      groupValue: _selectedGender,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedGender = value;
+                        });
+                      },
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    const Text('不限'),
+                  ],
+                ),
+              ),
+              ...Gender.values.map((gender) {
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedGender = gender;
+                    });
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<Gender?>(
+                        value: gender,
+                        groupValue: _selectedGender,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedGender = value;
+                          });
+                        },
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      Text(gender.label),
+                    ],
                   ),
-                  Text(gender.label),
-                  const SizedBox(width: 4),
-                ],
-              );
-            }),
+                );
+              }),
+            ],
+            if (!isPortrait) ...[
+              // 横屏：性别选项与模糊搜索在同一行，性别选项左侧贴中线
+              Expanded(
+                flex: 1,
+                child: Container(), // 占据左侧50%的空间
+              ),
+              const Text('性别', style: TextStyle(fontWeight: FontWeight.w500)),
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedGender = null;
+                  });
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<Gender?>(
+                      value: null,
+                      groupValue: _selectedGender,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedGender = value;
+                        });
+                      },
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    const Text('不限'),
+                  ],
+                ),
+              ),
+              ...Gender.values.map((gender) {
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedGender = gender;
+                    });
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<Gender?>(
+                        value: gender,
+                        groupValue: _selectedGender,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedGender = value;
+                          });
+                        },
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      Text(gender.label),
+                    ],
+                  ),
+                );
+              }),
+            ],
           ],
         ),
       ],
