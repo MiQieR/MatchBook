@@ -65,7 +65,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             child: const Text('删除'),
           ),
@@ -178,8 +178,8 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                         ),
                                         child: Text(
                                           '客户编号: ${_client!.clientId}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
+                                          style: TextStyle(
+                                            color: Theme.of(context).colorScheme.onPrimary,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
                                           ),

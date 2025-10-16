@@ -99,7 +99,6 @@ class AboutPage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
                         ),
                       ),
                     ],
@@ -141,7 +140,6 @@ class AboutPage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
                         ),
                       ),
                     ],
@@ -220,7 +218,6 @@ class AboutPage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
                         ),
                       ),
                     ],

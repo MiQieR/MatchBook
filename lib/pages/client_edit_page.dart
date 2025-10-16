@@ -271,7 +271,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Colors.white,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       ),
                       child: _isSaving
                           ? const Row(

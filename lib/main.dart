@@ -257,10 +257,10 @@ class MyApp extends StatelessWidget {
         elevation: 0,
         backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         foregroundColor: isDark ? Colors.white : const Color(0xFF1A1A1A),
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF1A1A1A),
+          color: isDark ? Colors.white : const Color(0xFF1A1A1A),
         ),
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
@@ -290,10 +290,10 @@ class MyApp extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         tileColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF1A1A1A),
+          color: isDark ? Colors.white : const Color(0xFF1A1A1A),
         ),
         subtitleTextStyle: const TextStyle(
           fontSize: 14,

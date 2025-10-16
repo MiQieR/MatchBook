@@ -159,12 +159,12 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         '查询客户',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -196,7 +196,7 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Theme.of(context).colorScheme.surface,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     ),
                     onSubmitted: (value) => _searchClients(),
@@ -273,7 +273,9 @@ class _SearchPageState extends State<SearchPage> {
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade800
+                              : Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Material(
@@ -285,13 +287,19 @@ class _SearchPageState extends State<SearchPage> {
                               });
                             },
                             borderRadius: BorderRadius.circular(16),
-                            splashColor: Colors.grey.shade300.withValues(alpha: 0.3),
-                            highlightColor: Colors.grey.shade300.withValues(alpha: 0.1),
+                            splashColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey.shade700.withValues(alpha: 0.3)
+                                : Colors.grey.shade300.withValues(alpha: 0.3),
+                            highlightColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey.shade700.withValues(alpha: 0.1)
+                                : Colors.grey.shade300.withValues(alpha: 0.1),
                             child: Padding(
                               padding: const EdgeInsets.all(12),
                               child: Icon(
                                 _showAdvancedFilters ? Icons.expand_less : Icons.expand_more,
-                                color: Colors.grey.shade600,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade600,
                               ),
                             ),
                           ),
@@ -306,7 +314,9 @@ class _SearchPageState extends State<SearchPage> {
             if (_showAdvancedFilters)
               Container(
                 padding: const EdgeInsets.all(16.0),
-                color: Colors.grey[50],
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF2A2A2A)
+                    : Colors.grey[50],
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     // 判断是否为竖屏模式（宽度较小）
@@ -493,7 +503,9 @@ class _SearchPageState extends State<SearchPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey.shade800
+                        : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -645,10 +657,10 @@ class _SearchPageState extends State<SearchPage> {
             border: OutlineInputBorder(),
             isDense: true,
           ),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.normal,
-            color: Colors.black87,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           items: [
             const DropdownMenuItem<Education>(
@@ -820,8 +832,8 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 child: Text(
                   '编号: ${client.clientId}',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
@@ -903,9 +915,9 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(
             child: Text(
               value.isEmpty ? '--' : value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF1A1A1A),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),

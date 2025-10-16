@@ -452,7 +452,6 @@ class _InputPageState extends State<InputPage> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFF1A1A1A),
                               ),
                             ),
                           ],
@@ -494,7 +493,7 @@ class _InputPageState extends State<InputPage> {
                               ),
                             ),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: Theme.of(context).colorScheme.surface,
                             contentPadding: const EdgeInsets.all(16),
                           ),
                           style: const TextStyle(
@@ -525,8 +524,8 @@ class _InputPageState extends State<InputPage> {
                                   child: InkWell(
                                     onTap: _pasteFromClipboard,
                                     borderRadius: BorderRadius.circular(24),
-                                    splashColor: Colors.white.withValues(alpha: 0.2),
-                                    highlightColor: Colors.white.withValues(alpha: 0.1),
+                                    splashColor: Colors.black.withValues(alpha: 0.1),
+                                    highlightColor: Colors.black.withValues(alpha: 0.05),
                                     child: Container(
                                       height: 48,
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -744,9 +743,9 @@ class _InputPageState extends State<InputPage> {
                           child: const Text(
                             '确认新增',
                             style: TextStyle(
+                              color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
                             ),
                           ),
                         ),

@@ -290,7 +290,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
                         ),
                       ),
                     ],
@@ -379,7 +378,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
                         ),
                       ),
                     ],
@@ -398,9 +396,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               SizedBox(width: 6),
                               Text(
                                 '导出数据',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
+                                style: TextStyle(color: Colors.white),
                               ),
                             ],
                           ),
@@ -418,9 +414,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               SizedBox(width: 6),
                               Text(
                                 '导入数据',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
+                                style: TextStyle(color: Colors.white),
                               ),
                             ],
                           ),
@@ -463,7 +457,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
                         ),
                       ),
                     ],
