@@ -1,8 +1,21 @@
 # MatchBook (姻缘册)
 
-English | [简体中文](./README.md)
+<div align="center">
+
+<img src="img/app.png" width="200"/>
 
 A professional matchmaker client management system built with Flutter, helping matchmakers efficiently manage and query client information.
+
+[![中文文档](https://img.shields.io/badge/docs-中文-blue.svg)](README.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Flutter](https://img.shields.io/badge/Flutter-3.9.2+-02569B?logo=flutter)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.9.2+-0175C2?logo=dart)](https://dart.dev)
+[![Version](https://img.shields.io/badge/Version-1.0.1-green.svg)](https://github.com/MiQieR/MatchBook)
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey.svg)](https://flutter.dev)
+[![Database](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite)](https://www.sqlite.org)
+[![State Management](https://img.shields.io/badge/State-Provider-orange)](https://pub.dev/packages/provider)
+
+</div>
 
 ## 📱 Features
 

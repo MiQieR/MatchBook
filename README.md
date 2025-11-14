@@ -1,8 +1,21 @@
 # 姻缘册 (MatchBook)
 
-[English](./README_EN.md) | 简体中文
+<div align="center">
+
+<img src="img/app.png" width="200"/>
 
 一个专业的红娘客户管理系统，基于 Flutter 开发，帮助红娘高效管理和查询客户信息。
+
+[![English Docs](https://img.shields.io/badge/docs-English-blue.svg)](README_EN.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Flutter](https://img.shields.io/badge/Flutter-3.9.2+-02569B?logo=flutter)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.9.2+-0175C2?logo=dart)](https://dart.dev)
+[![Version](https://img.shields.io/badge/Version-1.0.1-green.svg)](https://github.com/MiQieR/MatchBook)
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey.svg)](https://flutter.dev)
+[![Database](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite)](https://www.sqlite.org)
+[![State Management](https://img.shields.io/badge/State-Provider-orange)](https://pub.dev/packages/provider)
+
+</div>
 
 ## 📱 功能特性
 
