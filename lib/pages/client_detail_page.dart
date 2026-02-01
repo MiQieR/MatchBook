@@ -24,6 +24,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   Client? _client;
   bool _isLoading = true;
   String? _docDirPath;
+  bool _hasChanges = false;
 
   @override
   void initState() {

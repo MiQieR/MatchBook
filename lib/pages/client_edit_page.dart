@@ -302,6 +302,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
         if (_selectedPhotoPath != null) {
           if (_selectedPhotoPath != newAbsolute) {
             await File(_selectedPhotoPath!).copy(newAbsolute);
+            await FileImage(File(newAbsolute)).evict();
           }
 
           if (_photoIsTemp) {
@@ -405,11 +406,27 @@ class _ClientEditPageState extends State<ClientEditPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildTextField('推荐人', 'recommender', isRequired: true),
-              _buildTextField('客户编号', 'clientId', isRequired: true, enabled: false),
-              _buildGenderDropdown(),
-              const SizedBox(height: 8),
-              _buildPhotoBox(),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          _buildTextField('推荐人', 'recommender', isRequired: true),
+                          _buildTextField('客户编号', 'clientId', isRequired: true, enabled: false),
+                          _buildGenderDropdown(bottomPadding: 0),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 3,
+                      child: _buildPhotoBox(),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 12),
               _buildTextField('出生年份', 'birthYear', isNumber: true, hint: '如: 1990'),
               _buildTextField('出生地', 'birthPlace'),
@@ -622,9 +639,9 @@ class _ClientEditPageState extends State<ClientEditPage> {
     );
   }
 
-  Widget _buildGenderDropdown() {
+  Widget _buildGenderDropdown({double bottomPadding = 12.0}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: EdgeInsets.only(bottom: bottomPadding),
       child: DropdownButtonFormField<Gender>(
         decoration: InputDecoration(
           labelText: '性别 *',
