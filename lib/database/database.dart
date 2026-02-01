@@ -52,8 +52,17 @@ class AppDatabase extends _$AppDatabase {
     bool? hasHouse, // 有房筛选
   }) {
     final query = select(clients);
+    int? minEducationIndex;
+    if (educations != null && educations.isNotEmpty) {
+      minEducationIndex = educations
+          .map((e) => e.index)
+          .reduce((value, element) => value < element ? value : element);
+    }
 
     if (useFuzzySearch) {
+      if (genders != null && genders.isNotEmpty) {
+        query.where((tbl) => tbl.gender.isIn(genders.map((g) => g.index)));
+      }
       // 模糊搜索(或逻辑): 统一搜索框关键词 或 高级筛选条件
       query.where((tbl) {
         Expression<bool>? condition;
@@ -81,11 +90,6 @@ class AppDatabase extends _$AppDatabase {
         }
 
         // 处理高级筛选条件 - 与关键词使用"或"逻辑
-        if (genders != null && genders.isNotEmpty) {
-          final genderCondition = tbl.gender.isIn(genders.map((g) => g.index));
-          condition = condition == null ? genderCondition : (condition | genderCondition);
-        }
-
         if (minBirthYear != null) {
           final birthYearCondition = tbl.birthYear.isBiggerOrEqualValue(minBirthYear);
           condition = condition == null ? birthYearCondition : (condition | birthYearCondition);
@@ -116,8 +120,9 @@ class AppDatabase extends _$AppDatabase {
           condition = condition == null ? weightCondition : (condition | weightCondition);
         }
 
-        if (educations != null && educations.isNotEmpty) {
-          final educationCondition = tbl.education.isIn(educations.map((e) => e.index));
+        if (minEducationIndex != null) {
+          final educationIndex = minEducationIndex;
+          final educationCondition = tbl.education.isBiggerOrEqualValue(educationIndex);
           condition = condition == null ? educationCondition : (condition | educationCondition);
         }
 
@@ -202,8 +207,9 @@ class AppDatabase extends _$AppDatabase {
         query.where((tbl) => tbl.weight.isSmallerOrEqualValue(maxWeight));
       }
 
-      if (educations != null && educations.isNotEmpty) {
-        query.where((tbl) => tbl.education.isIn(educations.map((e) => e.index)));
+      if (minEducationIndex != null) {
+        final educationIndex = minEducationIndex;
+        query.where((tbl) => tbl.education.isBiggerOrEqualValue(educationIndex));
       }
 
       if (occupation != null && occupation.isNotEmpty) {

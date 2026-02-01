@@ -63,6 +63,9 @@ class ClientTextParser {
       }
 
       if (value != null && value.isNotEmpty) {
+        if (_isIgnoredValue(value)) {
+          continue;
+        }
         // 对特定字段进行数据验证和转换
         switch (fieldName) {
           case 'birthYear':
@@ -93,6 +96,11 @@ class ClientTextParser {
     }
 
     return ParseResult(fields: fields, errors: errors, warnings: warnings);
+  }
+
+  static bool _isIgnoredValue(String value) {
+    final normalized = value.trim();
+    return normalized == '无' || normalized == '没有';
   }
 
   /// 解析出生年份
