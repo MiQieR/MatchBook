@@ -170,6 +170,18 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _photoPathMeta = const VerificationMeta(
+    'photoPath',
+  );
+  @override
+  late final GeneratedColumn<String> photoPath = GeneratedColumn<String>(
+    'photo_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _selfEvaluationMeta = const VerificationMeta(
     'selfEvaluation',
   );
@@ -210,6 +222,7 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     house,
     maritalStatus,
     children,
+    photoPath,
     selfEvaluation,
     partnerRequirements,
   ];
@@ -335,6 +348,12 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     } else if (isInserting) {
       context.missing(_childrenMeta);
     }
+    if (data.containsKey('photo_path')) {
+      context.handle(
+        _photoPathMeta,
+        photoPath.isAcceptableOrUnknown(data['photo_path']!, _photoPathMeta),
+      );
+    }
     if (data.containsKey('self_evaluation')) {
       context.handle(
         _selfEvaluationMeta,
@@ -436,6 +455,10 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
         DriftSqlType.string,
         data['${effectivePrefix}children'],
       )!,
+      photoPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_path'],
+      )!,
       selfEvaluation: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}self_evaluation'],
@@ -477,6 +500,7 @@ class Client extends DataClass implements Insertable<Client> {
   final String house;
   final MaritalStatus maritalStatus;
   final String children;
+  final String photoPath;
   final String selfEvaluation;
   final String partnerRequirements;
   const Client({
@@ -496,6 +520,7 @@ class Client extends DataClass implements Insertable<Client> {
     required this.house,
     required this.maritalStatus,
     required this.children,
+    required this.photoPath,
     required this.selfEvaluation,
     required this.partnerRequirements,
   });
@@ -530,6 +555,7 @@ class Client extends DataClass implements Insertable<Client> {
       );
     }
     map['children'] = Variable<String>(children);
+    map['photo_path'] = Variable<String>(photoPath);
     map['self_evaluation'] = Variable<String>(selfEvaluation);
     map['partner_requirements'] = Variable<String>(partnerRequirements);
     return map;
@@ -553,6 +579,7 @@ class Client extends DataClass implements Insertable<Client> {
       house: Value(house),
       maritalStatus: Value(maritalStatus),
       children: Value(children),
+      photoPath: Value(photoPath),
       selfEvaluation: Value(selfEvaluation),
       partnerRequirements: Value(partnerRequirements),
     );
@@ -586,6 +613,7 @@ class Client extends DataClass implements Insertable<Client> {
         serializer.fromJson<int>(json['maritalStatus']),
       ),
       children: serializer.fromJson<String>(json['children']),
+      photoPath: serializer.fromJson<String>(json['photoPath']),
       selfEvaluation: serializer.fromJson<String>(json['selfEvaluation']),
       partnerRequirements: serializer.fromJson<String>(
         json['partnerRequirements'],
@@ -618,6 +646,7 @@ class Client extends DataClass implements Insertable<Client> {
         $ClientsTable.$convertermaritalStatus.toJson(maritalStatus),
       ),
       'children': serializer.toJson<String>(children),
+      'photoPath': serializer.toJson<String>(photoPath),
       'selfEvaluation': serializer.toJson<String>(selfEvaluation),
       'partnerRequirements': serializer.toJson<String>(partnerRequirements),
     };
@@ -640,6 +669,7 @@ class Client extends DataClass implements Insertable<Client> {
     String? house,
     MaritalStatus? maritalStatus,
     String? children,
+    String? photoPath,
     String? selfEvaluation,
     String? partnerRequirements,
   }) => Client(
@@ -659,6 +689,7 @@ class Client extends DataClass implements Insertable<Client> {
     house: house ?? this.house,
     maritalStatus: maritalStatus ?? this.maritalStatus,
     children: children ?? this.children,
+    photoPath: photoPath ?? this.photoPath,
     selfEvaluation: selfEvaluation ?? this.selfEvaluation,
     partnerRequirements: partnerRequirements ?? this.partnerRequirements,
   );
@@ -692,6 +723,7 @@ class Client extends DataClass implements Insertable<Client> {
           ? data.maritalStatus.value
           : this.maritalStatus,
       children: data.children.present ? data.children.value : this.children,
+      photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
       selfEvaluation: data.selfEvaluation.present
           ? data.selfEvaluation.value
           : this.selfEvaluation,
@@ -720,6 +752,7 @@ class Client extends DataClass implements Insertable<Client> {
           ..write('house: $house, ')
           ..write('maritalStatus: $maritalStatus, ')
           ..write('children: $children, ')
+          ..write('photoPath: $photoPath, ')
           ..write('selfEvaluation: $selfEvaluation, ')
           ..write('partnerRequirements: $partnerRequirements')
           ..write(')'))
@@ -744,6 +777,7 @@ class Client extends DataClass implements Insertable<Client> {
     house,
     maritalStatus,
     children,
+    photoPath,
     selfEvaluation,
     partnerRequirements,
   );
@@ -767,6 +801,7 @@ class Client extends DataClass implements Insertable<Client> {
           other.house == this.house &&
           other.maritalStatus == this.maritalStatus &&
           other.children == this.children &&
+          other.photoPath == this.photoPath &&
           other.selfEvaluation == this.selfEvaluation &&
           other.partnerRequirements == this.partnerRequirements);
 }
@@ -788,6 +823,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
   final Value<String> house;
   final Value<MaritalStatus> maritalStatus;
   final Value<String> children;
+  final Value<String> photoPath;
   final Value<String> selfEvaluation;
   final Value<String> partnerRequirements;
   final Value<int> rowid;
@@ -808,6 +844,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     this.house = const Value.absent(),
     this.maritalStatus = const Value.absent(),
     this.children = const Value.absent(),
+    this.photoPath = const Value.absent(),
     this.selfEvaluation = const Value.absent(),
     this.partnerRequirements = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -829,6 +866,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     required String house,
     required MaritalStatus maritalStatus,
     required String children,
+    this.photoPath = const Value.absent(),
     required String selfEvaluation,
     required String partnerRequirements,
     this.rowid = const Value.absent(),
@@ -867,6 +905,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     Expression<String>? house,
     Expression<int>? maritalStatus,
     Expression<String>? children,
+    Expression<String>? photoPath,
     Expression<String>? selfEvaluation,
     Expression<String>? partnerRequirements,
     Expression<int>? rowid,
@@ -888,6 +927,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
       if (house != null) 'house': house,
       if (maritalStatus != null) 'marital_status': maritalStatus,
       if (children != null) 'children': children,
+      if (photoPath != null) 'photo_path': photoPath,
       if (selfEvaluation != null) 'self_evaluation': selfEvaluation,
       if (partnerRequirements != null)
         'partner_requirements': partnerRequirements,
@@ -912,6 +952,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     Value<String>? house,
     Value<MaritalStatus>? maritalStatus,
     Value<String>? children,
+    Value<String>? photoPath,
     Value<String>? selfEvaluation,
     Value<String>? partnerRequirements,
     Value<int>? rowid,
@@ -933,6 +974,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
       house: house ?? this.house,
       maritalStatus: maritalStatus ?? this.maritalStatus,
       children: children ?? this.children,
+      photoPath: photoPath ?? this.photoPath,
       selfEvaluation: selfEvaluation ?? this.selfEvaluation,
       partnerRequirements: partnerRequirements ?? this.partnerRequirements,
       rowid: rowid ?? this.rowid,
@@ -996,6 +1038,9 @@ class ClientsCompanion extends UpdateCompanion<Client> {
     if (children.present) {
       map['children'] = Variable<String>(children.value);
     }
+    if (photoPath.present) {
+      map['photo_path'] = Variable<String>(photoPath.value);
+    }
     if (selfEvaluation.present) {
       map['self_evaluation'] = Variable<String>(selfEvaluation.value);
     }
@@ -1027,6 +1072,7 @@ class ClientsCompanion extends UpdateCompanion<Client> {
           ..write('house: $house, ')
           ..write('maritalStatus: $maritalStatus, ')
           ..write('children: $children, ')
+          ..write('photoPath: $photoPath, ')
           ..write('selfEvaluation: $selfEvaluation, ')
           ..write('partnerRequirements: $partnerRequirements, ')
           ..write('rowid: $rowid')
@@ -1064,6 +1110,7 @@ typedef $$ClientsTableCreateCompanionBuilder =
       required String house,
       required MaritalStatus maritalStatus,
       required String children,
+      Value<String> photoPath,
       required String selfEvaluation,
       required String partnerRequirements,
       Value<int> rowid,
@@ -1086,6 +1133,7 @@ typedef $$ClientsTableUpdateCompanionBuilder =
       Value<String> house,
       Value<MaritalStatus> maritalStatus,
       Value<String> children,
+      Value<String> photoPath,
       Value<String> selfEvaluation,
       Value<String> partnerRequirements,
       Value<int> rowid,
@@ -1180,6 +1228,11 @@ class $$ClientsTableFilterComposer
 
   ColumnFilters<String> get children => $composableBuilder(
     column: $table.children,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1283,6 +1336,11 @@ class $$ClientsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get photoPath => $composableBuilder(
+    column: $table.photoPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get selfEvaluation => $composableBuilder(
     column: $table.selfEvaluation,
     builder: (column) => ColumnOrderings(column),
@@ -1364,6 +1422,9 @@ class $$ClientsTableAnnotationComposer
   GeneratedColumn<String> get children =>
       $composableBuilder(column: $table.children, builder: (column) => column);
 
+  GeneratedColumn<String> get photoPath =>
+      $composableBuilder(column: $table.photoPath, builder: (column) => column);
+
   GeneratedColumn<String> get selfEvaluation => $composableBuilder(
     column: $table.selfEvaluation,
     builder: (column) => column,
@@ -1419,6 +1480,7 @@ class $$ClientsTableTableManager
                 Value<String> house = const Value.absent(),
                 Value<MaritalStatus> maritalStatus = const Value.absent(),
                 Value<String> children = const Value.absent(),
+                Value<String> photoPath = const Value.absent(),
                 Value<String> selfEvaluation = const Value.absent(),
                 Value<String> partnerRequirements = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1439,6 +1501,7 @@ class $$ClientsTableTableManager
                 house: house,
                 maritalStatus: maritalStatus,
                 children: children,
+                photoPath: photoPath,
                 selfEvaluation: selfEvaluation,
                 partnerRequirements: partnerRequirements,
                 rowid: rowid,
@@ -1461,6 +1524,7 @@ class $$ClientsTableTableManager
                 required String house,
                 required MaritalStatus maritalStatus,
                 required String children,
+                Value<String> photoPath = const Value.absent(),
                 required String selfEvaluation,
                 required String partnerRequirements,
                 Value<int> rowid = const Value.absent(),
@@ -1481,6 +1545,7 @@ class $$ClientsTableTableManager
                 house: house,
                 maritalStatus: maritalStatus,
                 children: children,
+                photoPath: photoPath,
                 selfEvaluation: selfEvaluation,
                 partnerRequirements: partnerRequirements,
                 rowid: rowid,

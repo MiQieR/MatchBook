@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../database/database.dart';
 import '../database/client.dart';
 import '../utils/text_parser.dart';
@@ -30,11 +34,15 @@ class _InputPageState extends State<InputPage> {
   MaritalStatus? _selectedMaritalStatus;
   bool _isSaving = false;
   String? _parseSuccessMessage;
+  String? _photoBaseDir;
+  String? _selectedPhotoPath;
+  bool _photoIsTemp = false;
 
   @override
   void initState() {
     super.initState();
     _initializeControllers();
+    _initPhotoDir();
   }
 
   void _initializeControllers() {
@@ -65,6 +73,108 @@ class _InputPageState extends State<InputPage> {
       controller.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _initPhotoDir() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final photosDir = Directory(path.join(dir.path, 'photos'));
+    if (!await photosDir.exists()) {
+      await photosDir.create(recursive: true);
+    }
+    if (mounted) {
+      setState(() {
+        _photoBaseDir = dir.path;
+      });
+    }
+  }
+
+  Future<String?> _prepareCropSource(XFile picked) async {
+    final pickedPath = picked.path;
+    if (pickedPath.isNotEmpty) {
+      final file = File(pickedPath);
+      if (await file.exists()) {
+        return pickedPath;
+      }
+    }
+
+    final bytes = await picked.readAsBytes();
+    final tempDir = await getTemporaryDirectory();
+    final tempPath = path.join(
+      tempDir.path,
+      'picked_${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
+    final tempFile = File(tempPath);
+    await tempFile.writeAsBytes(bytes, flush: true);
+    return tempPath;
+  }
+
+  Future<void> _pickPhoto() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.gallery);
+      if (picked == null) return;
+
+      final sourcePath = await _prepareCropSource(picked);
+      if (sourcePath == null) return;
+
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: sourcePath,
+        aspectRatio: const CropAspectRatio(ratioX: 2, ratioY: 3),
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 90,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: '裁剪照片',
+            hideBottomControls: false,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: '裁剪照片',
+            aspectRatioLockEnabled: true,
+          ),
+        ],
+      );
+
+      if (cropped == null) return;
+
+      if (_selectedPhotoPath != null && _photoIsTemp) {
+        final oldTemp = File(_selectedPhotoPath!);
+        if (await oldTemp.exists()) {
+          await oldTemp.delete();
+        }
+      }
+
+      final baseDir = _photoBaseDir;
+      if (baseDir == null) {
+        setState(() {
+          _selectedPhotoPath = cropped.path;
+          _photoIsTemp = true;
+        });
+        return;
+      }
+
+      final clientId = _controllers['clientId']!.text.trim();
+      final photosDir = path.join(baseDir, 'photos');
+      final fileName = clientId.isNotEmpty
+          ? '$clientId.jpg'
+          : 'temp_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final targetPath = path.join(photosDir, fileName);
+      await File(cropped.path).copy(targetPath);
+
+      setState(() {
+        _selectedPhotoPath = targetPath;
+        _photoIsTemp = clientId.isEmpty;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('选择照片失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _saveClient() async {
@@ -151,6 +261,31 @@ class _InputPageState extends State<InputPage> {
         _isSaving = true;
       });
 
+      String photoPath = '';
+      final clientId = _controllers['clientId']!.text.trim();
+      if (_selectedPhotoPath != null && _photoBaseDir != null && clientId.isNotEmpty) {
+        final photosDir = path.join(_photoBaseDir!, 'photos');
+        final targetPath = path.join(photosDir, '$clientId.jpg');
+        if (_selectedPhotoPath != targetPath) {
+          await File(_selectedPhotoPath!).copy(targetPath);
+          if (_photoIsTemp) {
+            final tempFile = File(_selectedPhotoPath!);
+            if (await tempFile.exists()) {
+              await tempFile.delete();
+            }
+          } else if (_selectedPhotoPath != null &&
+              _selectedPhotoPath!.startsWith(photosDir)) {
+            final oldFile = File(_selectedPhotoPath!);
+            if (await oldFile.exists()) {
+              await oldFile.delete();
+            }
+          }
+        }
+        photoPath = path.join('photos', '$clientId.jpg');
+        _photoIsTemp = false;
+        _selectedPhotoPath = targetPath;
+      }
+
       final client = ClientsCompanion(
         clientId: drift.Value(_controllers['clientId']!.text.trim()),
         recommender: drift.Value(_controllers['recommender']!.text.trim()),
@@ -171,6 +306,7 @@ class _InputPageState extends State<InputPage> {
         house: drift.Value(_controllers['house']!.text.trim()),
         maritalStatus: drift.Value(_selectedMaritalStatus ?? MaritalStatus.single),
         children: drift.Value(_controllers['children']!.text.trim()),
+        photoPath: drift.Value(photoPath),
         selfEvaluation: drift.Value(_controllers['selfEvaluation']!.text.trim()),
         partnerRequirements: drift.Value(_controllers['partnerRequirements']!.text.trim()),
       );
@@ -209,11 +345,19 @@ class _InputPageState extends State<InputPage> {
     for (var controller in _controllers.values) {
       controller.clear();
     }
+    if (_selectedPhotoPath != null && _photoIsTemp) {
+      final tempFile = File(_selectedPhotoPath!);
+      if (tempFile.existsSync()) {
+        tempFile.deleteSync();
+      }
+    }
     setState(() {
       _selectedGender = null;
       _selectedEducation = null;
       _selectedMaritalStatus = null;
       _parseSuccessMessage = null;
+      _selectedPhotoPath = null;
+      _photoIsTemp = false;
       _hasError.updateAll((key, value) => false);
       _hasWarning.updateAll((key, value) => false); // 清除警告状态
     });
@@ -612,20 +756,42 @@ class _InputPageState extends State<InputPage> {
                   const SizedBox(height: 16),
                   // 表单字段 - 根据横竖屏调整
                   if (isLandscape) ...[
-                    // 横屏布局：多个输入框在同一行
-                    Row(
-                      children: [
-                        Expanded(child: _buildTextField('推荐人', 'recommender', isRequired: true)),
-                        const SizedBox(width: 8),
-                        Expanded(child: _buildTextField('客户编号', 'clientId', isRequired: true)),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Expanded(child: _buildGenderDropdown()),
-                        const SizedBox(width: 8),
-                        Expanded(child: _buildTextField('出生年份', 'birthYear', isNumber: true, hint: '如: 1990')),
-                      ],
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                        child: _buildTextField('推荐人', 'recommender', isRequired: true)),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                        child: _buildTextField('客户编号', 'clientId', isRequired: true)),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(child: _buildGenderDropdown()),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                        child: _buildTextField('出生年份', 'birthYear',
+                                            isNumber: true, hint: '如: 1990')),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: constraints.maxWidth / 3,
+                            child: _buildPhotoBox(),
+                          ),
+                        ],
+                      ),
                     ),
                     Row(
                       children: [
@@ -667,10 +833,30 @@ class _InputPageState extends State<InputPage> {
                     _buildTextField('自我评价', 'selfEvaluation', maxLines: 3),
                     _buildTextField('择偶要求', 'partnerRequirements', maxLines: 3),
                   ] else ...[
-                    // 竖屏布局：保持原有的垂直布局
-                    _buildTextField('推荐人', 'recommender', isRequired: true),
-                    _buildTextField('客户编号', 'clientId', isRequired: true),
-                    _buildGenderDropdown(),
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                _buildTextField('推荐人', 'recommender', isRequired: true),
+                                const SizedBox(height: 12),
+                                _buildTextField('客户编号', 'clientId', isRequired: true),
+                                const SizedBox(height: 12),
+                                _buildGenderDropdown(bottomPadding: 0),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            width: constraints.maxWidth / 3,
+                            child: _buildPhotoBox(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     _buildTextField('出生年份', 'birthYear', isNumber: true, hint: '如: 1990'),
                     _buildTextField('出生地', 'birthPlace'),
                     _buildTextField('现居地', 'residence'),
@@ -828,9 +1014,56 @@ class _InputPageState extends State<InputPage> {
     );
   }
 
-  Widget _buildGenderDropdown() {
+  Widget _buildPhotoBox() {
+    Widget content;
+    if (_selectedPhotoPath != null) {
+      content = Image.file(
+        File(_selectedPhotoPath!),
+        fit: BoxFit.cover,
+      );
+    } else {
+      content = Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.add_a_photo_outlined,
+            color: Colors.grey.shade500,
+            size: 28,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '添加照片',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _pickPhoto,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: content,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderDropdown({double bottomPadding = 12.0}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: EdgeInsets.only(bottom: bottomPadding),
       child: DropdownButtonFormField<Gender>(
         decoration: InputDecoration(
           labelText: '性别 *',
@@ -855,7 +1088,7 @@ class _InputPageState extends State<InputPage> {
             color: _hasError['gender']! ? Colors.red : null,
           ),
         ),
-        value: _selectedGender,
+        initialValue: _selectedGender,
         items: Gender.values.map((Gender gender) {
           return DropdownMenuItem<Gender>(
             value: gender,
@@ -899,7 +1132,7 @@ class _InputPageState extends State<InputPage> {
             color: _hasError['education']! ? Colors.red : null,
           ),
         ),
-        value: _selectedEducation,
+        initialValue: _selectedEducation,
         items: Education.values.map((Education education) {
           return DropdownMenuItem<Education>(
             value: education,
@@ -943,7 +1176,7 @@ class _InputPageState extends State<InputPage> {
             color: _hasError['maritalStatus']! ? Colors.red : null,
           ),
         ),
-        value: _selectedMaritalStatus,
+        initialValue: _selectedMaritalStatus,
         items: MaritalStatus.values.map((MaritalStatus status) {
           return DropdownMenuItem<MaritalStatus>(
             value: status,

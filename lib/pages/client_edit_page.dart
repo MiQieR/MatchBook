@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:drift/drift.dart' as drift;
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../database/database.dart';
 import '../database/client.dart';
 
@@ -26,12 +30,17 @@ class _ClientEditPageState extends State<ClientEditPage> {
   Education? _selectedEducation;
   MaritalStatus? _selectedMaritalStatus;
   bool _isSaving = false;
+  String _photoPath = '';
+  String? _docDirPath;
+  String? _selectedPhotoPath;
+  bool _photoIsTemp = false;
 
   @override
   void initState() {
     super.initState();
     _initializeControllers();
     _loadClientData();
+    _initDocDir();
   }
 
   void _initializeControllers() {
@@ -73,6 +82,23 @@ class _ClientEditPageState extends State<ClientEditPage> {
     _selectedGender = client.gender;
     _selectedEducation = client.education;
     _selectedMaritalStatus = client.maritalStatus;
+    _photoPath = client.photoPath;
+  }
+
+  Future<void> _initDocDir() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final photosDir = Directory(path.join(dir.path, 'photos'));
+    if (!await photosDir.exists()) {
+      await photosDir.create(recursive: true);
+    }
+    if (mounted) {
+      setState(() {
+        _docDirPath = dir.path;
+        if (_photoPath.isNotEmpty) {
+          _selectedPhotoPath = path.join(dir.path, _photoPath);
+        }
+      });
+    }
   }
 
   @override
@@ -80,7 +106,105 @@ class _ClientEditPageState extends State<ClientEditPage> {
     for (var controller in _controllers.values) {
       controller.dispose();
     }
+    if (_selectedPhotoPath != null && _photoIsTemp) {
+      final tempFile = File(_selectedPhotoPath!);
+      if (tempFile.existsSync()) {
+        tempFile.deleteSync();
+      }
+    }
     super.dispose();
+  }
+
+  String _defaultPhotoAsset(Gender gender) {
+    return gender == Gender.male
+        ? 'img/user_default_male.jpg'
+        : 'img/user_default_female.jpg';
+  }
+
+  Future<String?> _prepareCropSource(XFile picked) async {
+    final pickedPath = picked.path;
+    if (pickedPath.isNotEmpty) {
+      final file = File(pickedPath);
+      if (await file.exists()) {
+        return pickedPath;
+      }
+    }
+
+    final bytes = await picked.readAsBytes();
+    final tempDir = await getTemporaryDirectory();
+    final tempPath = path.join(
+      tempDir.path,
+      'picked_${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
+    final tempFile = File(tempPath);
+    await tempFile.writeAsBytes(bytes, flush: true);
+    return tempPath;
+  }
+
+  Future<void> _pickPhoto() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.gallery);
+      if (picked == null) return;
+
+      final sourcePath = await _prepareCropSource(picked);
+      if (sourcePath == null) return;
+
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: sourcePath,
+        aspectRatio: const CropAspectRatio(ratioX: 2, ratioY: 3),
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 90,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: '裁剪照片',
+            hideBottomControls: false,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: '裁剪照片',
+            aspectRatioLockEnabled: true,
+          ),
+        ],
+      );
+
+      if (cropped == null) return;
+
+      if (_selectedPhotoPath != null && _photoIsTemp) {
+        final oldTemp = File(_selectedPhotoPath!);
+        if (await oldTemp.exists()) {
+          await oldTemp.delete();
+        }
+      }
+
+      final baseDir = _docDirPath;
+      if (baseDir == null) {
+        setState(() {
+          _selectedPhotoPath = cropped.path;
+          _photoIsTemp = true;
+        });
+        return;
+      }
+
+      final photosDir = path.join(baseDir, 'photos');
+      final tempName = 'temp_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final targetPath = path.join(photosDir, tempName);
+      await File(cropped.path).copy(targetPath);
+
+      setState(() {
+        _selectedPhotoPath = targetPath;
+        _photoIsTemp = true;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('选择照片失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _saveClient() async {
@@ -167,6 +291,52 @@ class _ClientEditPageState extends State<ClientEditPage> {
         _isSaving = true;
       });
 
+      String updatedPhotoPath = _photoPath;
+      final newClientId = _controllers['clientId']!.text.trim();
+      final baseDir = _docDirPath;
+      if (baseDir != null && newClientId.isNotEmpty) {
+        final photosDir = path.join(baseDir, 'photos');
+        final newRelative = path.join('photos', '$newClientId.jpg');
+        final newAbsolute = path.join(photosDir, '$newClientId.jpg');
+
+        if (_selectedPhotoPath != null) {
+          if (_selectedPhotoPath != newAbsolute) {
+            await File(_selectedPhotoPath!).copy(newAbsolute);
+          }
+
+          if (_photoIsTemp) {
+            final tempFile = File(_selectedPhotoPath!);
+            if (await tempFile.exists()) {
+              await tempFile.delete();
+            }
+          } else if (_selectedPhotoPath!.startsWith(photosDir) &&
+              _selectedPhotoPath != newAbsolute) {
+            final oldFile = File(_selectedPhotoPath!);
+            if (await oldFile.exists()) {
+              await oldFile.delete();
+            }
+          }
+
+          if (_photoPath.isNotEmpty && _photoPath != newRelative) {
+            final oldAbsolute = path.join(baseDir, _photoPath);
+            if (await File(oldAbsolute).exists()) {
+              await File(oldAbsolute).delete();
+            }
+          }
+
+          updatedPhotoPath = newRelative;
+          _photoIsTemp = false;
+          _selectedPhotoPath = newAbsolute;
+        } else if (_photoPath.isNotEmpty) {
+          final oldAbsolute = path.join(baseDir, _photoPath);
+          if (_photoPath != newRelative && await File(oldAbsolute).exists()) {
+            await File(oldAbsolute).copy(newAbsolute);
+            await File(oldAbsolute).delete();
+          }
+          updatedPhotoPath = newRelative;
+        }
+      }
+
       final updatedClient = Client(
         clientId: _controllers['clientId']!.text.trim(),
         recommender: _controllers['recommender']!.text.trim(),
@@ -187,6 +357,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
         house: _controllers['house']!.text.trim(),
         maritalStatus: _selectedMaritalStatus ?? MaritalStatus.single,
         children: _controllers['children']!.text.trim(),
+        photoPath: updatedPhotoPath,
         selfEvaluation: _controllers['selfEvaluation']!.text.trim(),
         partnerRequirements: _controllers['partnerRequirements']!.text.trim(),
       );
@@ -237,6 +408,9 @@ class _ClientEditPageState extends State<ClientEditPage> {
               _buildTextField('推荐人', 'recommender', isRequired: true),
               _buildTextField('客户编号', 'clientId', isRequired: true, enabled: false),
               _buildGenderDropdown(),
+              const SizedBox(height: 8),
+              _buildPhotoBox(),
+              const SizedBox(height: 12),
               _buildTextField('出生年份', 'birthYear', isNumber: true, hint: '如: 1990'),
               _buildTextField('出生地', 'birthPlace'),
               _buildTextField('现居地', 'residence'),
@@ -315,6 +489,74 @@ class _ClientEditPageState extends State<ClientEditPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPhotoBox() {
+    final resolved = _selectedPhotoPath ??
+        (_docDirPath != null && _photoPath.isNotEmpty
+            ? path.join(_docDirPath!, _photoPath)
+            : null);
+    final gender = _selectedGender;
+    Widget content;
+    if (resolved != null) {
+      content = Image.file(
+        File(resolved),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          if (gender == null) {
+            return _buildPhotoPlaceholder();
+          }
+          return Image.asset(_defaultPhotoAsset(gender), fit: BoxFit.cover);
+        },
+      );
+    } else if (gender != null) {
+      content = Image.asset(
+        _defaultPhotoAsset(gender),
+        fit: BoxFit.cover,
+      );
+    } else {
+      content = _buildPhotoPlaceholder();
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _pickPhoto,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 180,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: content,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoPlaceholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.add_a_photo_outlined,
+          color: Colors.grey.shade500,
+          size: 28,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '添加照片',
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 
@@ -407,7 +649,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
             color: _hasError['gender']! ? Colors.red : null,
           ),
         ),
-        value: _selectedGender,
+        initialValue: _selectedGender,
         items: Gender.values.map((Gender gender) {
           return DropdownMenuItem<Gender>(
             value: gender,
@@ -451,7 +693,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
             color: _hasError['education']! ? Colors.red : null,
           ),
         ),
-        value: _selectedEducation,
+        initialValue: _selectedEducation,
         items: Education.values.map((Education education) {
           return DropdownMenuItem<Education>(
             value: education,
@@ -495,7 +737,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
             color: _hasError['maritalStatus']! ? Colors.red : null,
           ),
         ),
-        value: _selectedMaritalStatus,
+        initialValue: _selectedMaritalStatus,
         items: MaritalStatus.values.map((MaritalStatus status) {
           return DropdownMenuItem<MaritalStatus>(
             value: status,

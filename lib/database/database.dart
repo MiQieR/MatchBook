@@ -10,7 +10,19 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 4) {
+        await m.addColumn(clients, clients.photoPath);
+      }
+    },
+  );
 
   static QueryExecutor _openConnection() {
     return driftDatabase(

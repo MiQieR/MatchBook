@@ -49,6 +49,7 @@ class Clients extends Table {
   TextColumn get house => text()();
   IntColumn get maritalStatus => intEnum<MaritalStatus>()();
   TextColumn get children => text()();
+  TextColumn get photoPath => text().withDefault(const Constant(''))();
   TextColumn get selfEvaluation => text()();
   TextColumn get partnerRequirements => text()();
 

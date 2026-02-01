@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../database/database.dart';
 import '../database/client.dart';
 import 'client_detail_page.dart';
@@ -34,6 +37,56 @@ class _SearchPageState extends State<SearchPage> {
   bool _useFuzzySearch = false; // 模糊搜索(或逻辑)
   bool _hasCar = false; // 有车
   bool _hasHouse = false; // 有房
+  String? _docDirPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _initDocDir();
+  }
+
+  Future<void> _initDocDir() async {
+    final dir = await getApplicationDocumentsDirectory();
+    if (mounted) {
+      setState(() {
+        _docDirPath = dir.path;
+      });
+    }
+  }
+
+  String _defaultPhotoAsset(Gender gender) {
+    return gender == Gender.male
+        ? 'img/user_default_male.jpg'
+        : 'img/user_default_female.jpg';
+  }
+
+  String? _resolvePhotoPath(String photoPath) {
+    if (_docDirPath == null || photoPath.isEmpty) return null;
+    return path.join(_docDirPath!, photoPath);
+  }
+
+  Widget _buildClientPhoto(Client client) {
+    final asset = _defaultPhotoAsset(client.gender);
+    final resolved = _resolvePhotoPath(client.photoPath);
+    final image = resolved == null
+        ? Image.asset(asset, fit: BoxFit.cover)
+        : Image.file(
+            File(resolved),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Image.asset(asset, fit: BoxFit.cover);
+            },
+          );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: 80,
+        height: 120,
+        child: image,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -863,13 +916,26 @@ class _SearchPageState extends State<SearchPage> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildModernInfoRow('推荐人', client.recommender),
-          _buildModernInfoRow('年龄', '$age岁 (${client.birthYear}年出生)'),
-          _buildModernInfoRow('出生地', client.birthPlace),
-          _buildModernInfoRow('现居地', client.residence),
-          _buildModernInfoRow('身高体重', '${client.height}cm / ${client.weight}斤'),
-          _buildModernInfoRow('学历', client.education.label),
-          _buildModernInfoRow('职业', client.occupation),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildClientPhoto(client),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildModernInfoRow('推荐人', client.recommender),
+                    _buildModernInfoRow('年龄', '$age岁 (${client.birthYear}年出生)'),
+                    _buildModernInfoRow('出生地', client.birthPlace),
+                    _buildModernInfoRow('现居地', client.residence),
+                    _buildModernInfoRow('身高体重', '${client.height}cm / ${client.weight}斤'),
+                    _buildModernInfoRow('学历', client.education.label),
+                    _buildModernInfoRow('职业', client.occupation),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,

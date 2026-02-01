@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../database/database.dart';
 import '../database/client.dart';
 import 'client_edit_page.dart';
@@ -20,11 +23,51 @@ class ClientDetailPage extends StatefulWidget {
 class _ClientDetailPageState extends State<ClientDetailPage> {
   Client? _client;
   bool _isLoading = true;
+  String? _docDirPath;
 
   @override
   void initState() {
     super.initState();
     _loadClient();
+    _initDocDir();
+  }
+
+  Future<void> _initDocDir() async {
+    final dir = await getApplicationDocumentsDirectory();
+    if (mounted) {
+      setState(() {
+        _docDirPath = dir.path;
+      });
+    }
+  }
+
+  String _defaultPhotoAsset(Gender gender) {
+    return gender == Gender.male
+        ? 'img/user_default_male.jpg'
+        : 'img/user_default_female.jpg';
+  }
+
+  String? _resolvePhotoPath(String photoPath) {
+    if (_docDirPath == null || photoPath.isEmpty) return null;
+    return path.join(_docDirPath!, photoPath);
+  }
+
+  Widget _buildClientPhoto(Client client, {double width = 90, double height = 135}) {
+    final asset = _defaultPhotoAsset(client.gender);
+    final resolved = _resolvePhotoPath(client.photoPath);
+    final image = resolved == null
+        ? Image.asset(asset, fit: BoxFit.cover)
+        : Image.file(
+            File(resolved),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Image.asset(asset, fit: BoxFit.cover);
+            },
+          );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(width: width, height: height, child: image),
+    );
   }
 
   Future<void> _loadClient() async {
@@ -234,21 +277,30 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                       Card(
                                         child: Padding(
                                           padding: const EdgeInsets.all(16.0),
-                                          child: Column(
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              _buildInfoRow('推荐人', _client!.recommender),
-                                              _buildInfoRow('年龄',
-                                                  '${_calculateAge(_client!.birthYear)}岁 (${_client!.birthYear}年出生)'),
-                                              _buildInfoRow('出生地', _client!.birthPlace),
-                                              _buildInfoRow('现居地', _client!.residence),
-                                              _buildInfoRow('身高',
-                                                  '${_client!.height == 0 ? '--' : '${_client!.height}cm'}'),
-                                              _buildInfoRow('体重',
-                                                  '${_client!.weight == 0 ? '--' : '${_client!.weight}斤'}'),
-                                              _buildInfoRow('学历', _client!.education.label),
-                                              _buildInfoRow('职业', _client!.occupation),
-                                              _buildInfoRow('婚姻状态', _client!.maritalStatus.label),
-                                              _buildInfoRow('有无小孩', _client!.children),
+                                              _buildClientPhoto(_client!),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  children: [
+                                                    _buildInfoRow('推荐人', _client!.recommender),
+                                                    _buildInfoRow('年龄',
+                                                        '${_calculateAge(_client!.birthYear)}岁 (${_client!.birthYear}年出生)'),
+                                                    _buildInfoRow('出生地', _client!.birthPlace),
+                                                    _buildInfoRow('现居地', _client!.residence),
+                                                    _buildInfoRow('身高',
+                                                        _client!.height == 0 ? '--' : '${_client!.height}cm'),
+                                                    _buildInfoRow('体重',
+                                                        _client!.weight == 0 ? '--' : '${_client!.weight}斤'),
+                                                    _buildInfoRow('学历', _client!.education.label),
+                                                    _buildInfoRow('职业', _client!.occupation),
+                                                    _buildInfoRow('婚姻状态', _client!.maritalStatus.label),
+                                                    _buildInfoRow('有无小孩', _client!.children),
+                                                  ],
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -383,23 +435,32 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                 Card(
                                   child: Padding(
                                     padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      children: [
-                                        _buildInfoRow('推荐人', _client!.recommender),
-                                        _buildInfoRow('年龄',
-                                            '${_calculateAge(_client!.birthYear)}岁 (${_client!.birthYear}年出生)'),
-                                        _buildInfoRow('出生地', _client!.birthPlace),
-                                        _buildInfoRow('现居地', _client!.residence),
-                                        _buildInfoRow('身高',
-                                            '${_client!.height == 0 ? '--' : '${_client!.height}cm'}'),
-                                        _buildInfoRow('体重',
-                                            '${_client!.weight == 0 ? '--' : '${_client!.weight}斤'}'),
-                                        _buildInfoRow('学历', _client!.education.label),
-                                        _buildInfoRow('职业', _client!.occupation),
-                                        _buildInfoRow('婚姻状态', _client!.maritalStatus.label),
-                                        _buildInfoRow('有无小孩', _client!.children),
-                                      ],
-                                    ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      _buildClientPhoto(_client!),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          children: [
+                                            _buildInfoRow('推荐人', _client!.recommender),
+                                            _buildInfoRow('年龄',
+                                                '${_calculateAge(_client!.birthYear)}岁 (${_client!.birthYear}年出生)'),
+                                            _buildInfoRow('出生地', _client!.birthPlace),
+                                            _buildInfoRow('现居地', _client!.residence),
+                                            _buildInfoRow('身高',
+                                                _client!.height == 0 ? '--' : '${_client!.height}cm'),
+                                            _buildInfoRow('体重',
+                                                _client!.weight == 0 ? '--' : '${_client!.weight}斤'),
+                                            _buildInfoRow('学历', _client!.education.label),
+                                            _buildInfoRow('职业', _client!.occupation),
+                                            _buildInfoRow('婚姻状态', _client!.maritalStatus.label),
+                                            _buildInfoRow('有无小孩', _client!.children),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),

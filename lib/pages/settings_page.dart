@@ -9,6 +9,9 @@ import 'about_page.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:archive/archive.dart';
 import 'dart:io';
 
 class SettingsPage extends StatefulWidget {
@@ -77,6 +80,7 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       // 获取所有客户数据
       final clients = await widget.database.getAllClients();
+      final documentsDir = await getApplicationDocumentsDirectory();
 
       if (clients.isEmpty) {
         if (mounted) {
@@ -92,7 +96,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
       // 将数据转换为JSON
       final data = {
-        'version': 1,
+        'version': 2,
         'exportTime': DateTime.now().toIso8601String(),
         'clients': clients.map((c) => {
           'clientId': c.clientId,
@@ -111,19 +115,34 @@ class _SettingsPageState extends State<SettingsPage> {
           'house': c.house,
           'maritalStatus': c.maritalStatus.index,
           'children': c.children,
+          'photoPath': c.photoPath,
           'selfEvaluation': c.selfEvaluation,
           'partnerRequirements': c.partnerRequirements,
         }).toList(),
       };
 
       final jsonString = jsonEncode(data);
-      final bytes = utf8.encode(jsonString);
+      final jsonBytes = utf8.encode(jsonString);
+
+      final archive = Archive();
+      archive.addFile(ArchiveFile('data.json', jsonBytes.length, jsonBytes));
+
+      for (final client in clients) {
+        if (client.photoPath.isEmpty) continue;
+        final absolutePath = path.join(documentsDir.path, client.photoPath);
+        final photoFile = File(absolutePath);
+        if (!await photoFile.exists()) continue;
+        final photoBytes = await photoFile.readAsBytes();
+        archive.addFile(ArchiveFile(client.photoPath, photoBytes.length, photoBytes));
+      }
+
+      final zipBytes = ZipEncoder().encode(archive);
 
       // 选择保存位置
       final String? outputPath = await FilePicker.platform.saveFile(
         dialogTitle: '导出数据',
-        fileName: 'matchmaker_data_${DateTime.now().millisecondsSinceEpoch}.json',
-        bytes: Uint8List.fromList(bytes),
+        fileName: 'matchmaker_data_${DateTime.now().millisecondsSinceEpoch}.zip',
+        bytes: Uint8List.fromList(zipBytes),
       );
 
       if (outputPath != null) {
@@ -153,14 +172,41 @@ class _SettingsPageState extends State<SettingsPage> {
       // 选择文件
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: ['json', 'zip'],
       );
 
       if (result == null) return;
 
       final file = File(result.files.single.path!);
-      final jsonString = await file.readAsString();
-      final data = jsonDecode(jsonString) as Map<String, dynamic>;
+      final extension = path.extension(file.path).toLowerCase();
+      Map<String, dynamic> data;
+
+      if (extension == '.zip') {
+        final bytes = await file.readAsBytes();
+        final archive = ZipDecoder().decodeBytes(bytes);
+        final dataFile = archive.files.firstWhere(
+          (f) => f.name == 'data.json',
+          orElse: () => throw Exception('压缩包中未找到 data.json'),
+        );
+        if (!dataFile.isFile) {
+          throw Exception('压缩包中的 data.json 无效');
+        }
+        final jsonString = utf8.decode(dataFile.content as List<int>);
+        data = jsonDecode(jsonString) as Map<String, dynamic>;
+
+        final documentsDir = await getApplicationDocumentsDirectory();
+        for (final entry in archive.files) {
+          if (!entry.isFile) continue;
+          if (!entry.name.startsWith('photos/')) continue;
+          final targetPath = path.join(documentsDir.path, entry.name);
+          final targetFile = File(targetPath);
+          await targetFile.parent.create(recursive: true);
+          await targetFile.writeAsBytes(entry.content as List<int>, flush: true);
+        }
+      } else {
+        final jsonString = await file.readAsString();
+        data = jsonDecode(jsonString) as Map<String, dynamic>;
+      }
 
       // 验证数据格式
       if (!data.containsKey('clients') || data['clients'] is! List) {
@@ -185,6 +231,7 @@ class _SettingsPageState extends State<SettingsPage> {
           house: item['house'] as String,
           maritalStatus: MaritalStatus.values[item['maritalStatus'] as int],
           children: item['children'] as String,
+          photoPath: (item['photoPath'] as String?) ?? '',
           selfEvaluation: item['selfEvaluation'] as String,
           partnerRequirements: item['partnerRequirements'] as String,
         );
