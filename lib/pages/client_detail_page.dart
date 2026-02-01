@@ -25,6 +25,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   bool _isLoading = true;
   String? _docDirPath;
   bool _hasChanges = false;
+  bool _canPop = false;
 
   @override
   void initState() {
@@ -127,6 +128,8 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
               backgroundColor: Colors.green,
             ),
           );
+          _canPop = true;
+          setState(() {});
           Navigator.pop(context, true); // 返回并刷新列表
         }
       } catch (e) {
@@ -157,6 +160,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
     if (result == true) {
       // 重新加载客户数据
+      _hasChanges = true;
       _loadClient();
     }
   }
@@ -168,8 +172,18 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return PopScope(
+      canPop: _canPop,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        _canPop = true;
+        setState(() {});
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) Navigator.pop(context, _hasChanges);
+        });
+      },
+      child: Scaffold(
+        appBar: AppBar(
         title: const Text('客户详情'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
@@ -571,6 +585,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     );
                   },
                 ),
+      ),
     );
   }
 

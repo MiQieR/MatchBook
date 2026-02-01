@@ -104,7 +104,7 @@ class AboutPage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildInfoRow(context, Icons.numbers, '版本号', 'v1.0.1'),
+                  _buildInfoRow(context, Icons.numbers, '版本号', 'v1.1.0'),
                 ],
               ),
             ),

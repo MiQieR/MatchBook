@@ -392,18 +392,97 @@ class _ClientEditPageState extends State<ClientEditPage> {
     }
   }
 
+  bool get _hasUnsavedChanges {
+    final c = widget.client;
+    bool textChanged(String key, String original) => _controllers[key]!.text != original;
+    bool intChanged(String key, int original) {
+      final text = _controllers[key]!.text.trim();
+      final val = text.isEmpty ? 0 : int.tryParse(text) ?? 0;
+      return val != original;
+    }
+
+    if (textChanged('recommender', c.recommender)) return true;
+    if (intChanged('birthYear', c.birthYear)) return true;
+    if (textChanged('birthPlace', c.birthPlace)) return true;
+    if (textChanged('residence', c.residence)) return true;
+    if (intChanged('height', c.height)) return true;
+    if (intChanged('weight', c.weight)) return true;
+    if (textChanged('occupation', c.occupation)) return true;
+    if (textChanged('familyInfo', c.familyInfo)) return true;
+    if (textChanged('annualIncome', c.annualIncome)) return true;
+    if (textChanged('car', c.car)) return true;
+    if (textChanged('house', c.house)) return true;
+    if (textChanged('children', c.children)) return true;
+    if (textChanged('selfEvaluation', c.selfEvaluation)) return true;
+    if (textChanged('partnerRequirements', c.partnerRequirements)) return true;
+
+    if (_selectedGender != c.gender) return true;
+    if (_selectedEducation != c.education) return true;
+    if (_selectedMaritalStatus != c.maritalStatus) return true;
+
+    String? originalAbsPath;
+    if (_docDirPath != null && c.photoPath.isNotEmpty) {
+      originalAbsPath = path.join(_docDirPath!, c.photoPath);
+    }
+    if (_selectedPhotoPath != originalAbsPath) return true;
+
+    return false;
+  }
+
+  Future<void> _handlePop(bool didPop) async {
+    if (didPop) return;
+
+    if (!_hasUnsavedChanges) {
+      Navigator.pop(context);
+      return;
+    }
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('未保存的更改'),
+        content: const Text('您有未保存的更改，是否保存？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 0), // Don't Save
+            child: const Text('不保存', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 1), // Cancel
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, 2), // Save
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == null || result == 1) return; // Cancel or dismiss
+
+    if (result == 2) {
+      await _saveClient();
+    } else {
+      if (mounted) Navigator.pop(context); // Don't save, just leave
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('编辑客户'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: _handlePop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('编辑客户'),
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               IntrinsicHeight(
@@ -505,6 +584,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
