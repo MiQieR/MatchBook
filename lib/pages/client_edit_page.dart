@@ -215,7 +215,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
 
     bool hasValidationErrors = false;
 
-    // 验证必填字段：推荐人、客户编号、性别
+    // 验证必填字段：姓名、客户编号、性别
     if (_controllers['recommender']!.text.trim().isEmpty) {
       _hasError['recommender'] = true;
       hasValidationErrors = true;
@@ -492,7 +492,7 @@ class _ClientEditPageState extends State<ClientEditPage> {
                     Expanded(
                       child: Column(
                         children: [
-                          _buildTextField('推荐人', 'recommender', isRequired: true),
+                          _buildTextField('姓名', 'recommender', isRequired: true),
                           _buildTextField('客户编号', 'clientId', isRequired: true, enabled: false),
                           _buildGenderDropdown(bottomPadding: 0),
                         ],

@@ -300,7 +300,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                               Expanded(
                                                 child: Column(
                                                   children: [
-                                                    _buildInfoRow('推荐人', _client!.recommender),
+                                                    _buildInfoRow('姓名', _client!.recommender),
                                                     _buildInfoRow('年龄',
                                                         '${_calculateAge(_client!.birthYear)}岁 (${_client!.birthYear}年出生)'),
                                                     _buildInfoRow('出生地', _client!.birthPlace),
@@ -458,7 +458,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                                       Expanded(
                                         child: Column(
                                           children: [
-                                            _buildInfoRow('推荐人', _client!.recommender),
+                                            _buildInfoRow('姓名', _client!.recommender),
                                             _buildInfoRow('年龄',
                                                 '${_calculateAge(_client!.birthYear)}岁 (${_client!.birthYear}年出生)'),
                                             _buildInfoRow('出生地', _client!.birthPlace),

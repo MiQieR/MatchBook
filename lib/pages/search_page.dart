@@ -226,7 +226,7 @@ class _SearchPageState extends State<SearchPage> {
                   TextField(
                     controller: _keywordController,
                     decoration: InputDecoration(
-                      hintText: '搜索 编号/推荐人/现居地/职业 等（空格分隔）',
+                      hintText: '搜索 编号/姓名/现居地/职业 等（空格分隔）',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide(
@@ -924,7 +924,7 @@ class _SearchPageState extends State<SearchPage> {
               Expanded(
                 child: Column(
                   children: [
-                    _buildModernInfoRow('推荐人', client.recommender),
+                    _buildModernInfoRow('姓名', client.recommender),
                     _buildModernInfoRow('年龄', '$age岁 (${client.birthYear}年出生)'),
                     _buildModernInfoRow('出生地', client.birthPlace),
                     _buildModernInfoRow('现居地', client.residence),

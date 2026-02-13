@@ -185,7 +185,7 @@ class _InputPageState extends State<InputPage> {
 
     bool hasValidationErrors = false;
 
-    // 验证必填字段：推荐人、客户编号、性别
+    // 验证必填字段：姓名、客户编号、性别
     if (_controllers['recommender']!.text.trim().isEmpty) {
       _hasError['recommender'] = true;
       hasValidationErrors = true;
@@ -766,7 +766,7 @@ class _InputPageState extends State<InputPage> {
                                 Row(
                                   children: [
                                     Expanded(
-                                        child: _buildTextField('推荐人', 'recommender', isRequired: true)),
+                                        child: _buildTextField('姓名', 'recommender', isRequired: true)),
                                     const SizedBox(width: 8),
                                     Expanded(
                                         child: _buildTextField('客户编号', 'clientId', isRequired: true)),
@@ -840,7 +840,7 @@ class _InputPageState extends State<InputPage> {
                           Expanded(
                             child: Column(
                               children: [
-                                _buildTextField('推荐人', 'recommender', isRequired: true),
+                                _buildTextField('姓名', 'recommender', isRequired: true),
                                 const SizedBox(height: 12),
                                 _buildTextField('客户编号', 'clientId', isRequired: true),
                                 const SizedBox(height: 12),

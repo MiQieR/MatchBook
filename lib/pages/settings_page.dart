@@ -542,9 +542,17 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    '版本 1.1.0',
+                                    '版本 1.1.1',
                                     style: TextStyle(
                                       fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '项目已归档，停止维护',
+                                    style: TextStyle(
+                                      fontSize: 12,
                                       color: Colors.grey,
                                     ),
                                   ),
@@ -703,7 +711,7 @@ class _ConflictResolutionPageState extends State<ConflictResolutionPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildInfoRow('客户编号', client.clientId),
-                _buildInfoRow('推荐人', client.recommender),
+                _buildInfoRow('姓名', client.recommender),
                 _buildInfoRow('性别', client.gender.label),
                 _buildInfoRow('年龄', '${_calculateAge(client.birthYear)}岁 (${client.birthYear}年出生)'),
                 _buildInfoRow('出生地', client.birthPlace),

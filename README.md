@@ -1,5 +1,8 @@
 # 姻缘册 (MatchBook)
 
+> 🚩 **Project Status: Archived**  
+> 本项目最初为解决友人特定需求及 Flutter 练手而作。因已有成熟替代方案，现正式停止维护。
+
 <div align="center">
 
 <img src="img/app.png" width="200"/>
@@ -10,7 +13,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Flutter](https://img.shields.io/badge/Flutter-3.9.2+-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.9.2+-0175C2?logo=dart)](https://dart.dev)
-[![Version](https://img.shields.io/badge/Version-1.1.0-green.svg)](https://github.com/MiQieR/MatchBook)
+[![Version](https://img.shields.io/badge/Version-1.1.1-green.svg)](https://github.com/MiQieR/MatchBook)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey.svg)](https://flutter.dev)
 [![Database](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite)](https://www.sqlite.org)
 [![State Management](https://img.shields.io/badge/State-Provider-orange)](https://pub.dev/packages/provider)
@@ -58,7 +61,7 @@
 
 每个客户包含以下信息：
 - 客户 ID（唯一标识符）
-- 推荐人
+- 姓名
 - 性别（男/女）
 - 出生年份
 - 籍贯
