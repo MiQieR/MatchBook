@@ -24,6 +24,7 @@ enum Education {
 
 enum MaritalStatus {
   single('未婚'),
+  shortMarriageNoChildren('短婚未育'),
   divorced('离异'),
   widowed('丧偶'),
   other('其他');

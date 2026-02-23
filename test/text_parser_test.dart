@@ -158,5 +158,33 @@ void main() {
       expect(result.fields['maritalStatus'], '未婚');
       expect(result.errors.containsKey('maritalStatus'), false);
     });
+
+    test('应该正确解析新增加的婚姻状态：短婚未育', () {
+      const testText = '婚姻状态：短婚未育';
+      final result = ClientTextParser.parse(testText);
+      expect(result.fields['maritalStatus'], '短婚未育');
+      expect(result.errors.containsKey('maritalStatus'), false);
+    });
+
+    test('优化一键识别逻辑：多种编号标签都应识别为clientId', () {
+      const texts = [
+        '编号：123',
+        '编码：456',
+        '客户编号：789',
+        '客户编码：012',
+      ];
+      const expected = ['123', '456', '789', '012'];
+
+      for (int i = 0; i < texts.length; i++) {
+        final result = ClientTextParser.parse(texts[i]);
+        expect(result.fields['clientId'], expected[i], reason: '标签 "${texts[i]}" 应该能正确识别编号');
+      }
+    });
+
+    test('应该能正确识别 "推荐人" 为 recommender', () {
+      const testText = '推荐人：王五';
+      final result = ClientTextParser.parse(testText);
+      expect(result.fields['recommender'], '王五');
+    });
   });
 }

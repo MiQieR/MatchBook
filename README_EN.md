@@ -61,7 +61,7 @@ A professional matchmaker client management system built with Flutter, helping m
 
 Each client contains the following information:
 - Client ID (unique identifier)
-- Name
+- Recommender
 - Gender (Male/Female)
 - Birth Year
 - Birthplace
@@ -74,7 +74,7 @@ Each client contains the following information:
 - Annual Income
 - Car
 - House
-- Marital Status (Single/Divorced/Widowed/Other)
+- Marital Status (Single/Short Marriage No Children/Divorced/Widowed/Other)
 - Children Information
 - Self Evaluation
 - Partner Requirements

@@ -711,7 +711,7 @@ class _ConflictResolutionPageState extends State<ConflictResolutionPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildInfoRow('客户编号', client.clientId),
-                _buildInfoRow('姓名', client.recommender),
+                _buildInfoRow('推荐人', client.recommender),
                 _buildInfoRow('性别', client.gender.label),
                 _buildInfoRow('年龄', '${_calculateAge(client.birthYear)}岁 (${client.birthYear}年出生)'),
                 _buildInfoRow('出生地', client.birthPlace),
